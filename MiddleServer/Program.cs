@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -15,7 +16,6 @@ namespace MiddleServer
         public static void Main(string[] args)
         {
              CreateWebHostBuilder(args).Build().Run();
-
             /*
             IConfigurationRoot config = new ConfigurationBinder()
                 .SetBasePath(Directory.GetCurrentDirectory)
@@ -35,5 +35,23 @@ namespace MiddleServer
         //    .UseUrls("http://localhost:5001", "http://localhost:5002")
         //        .UseStartup<Startup>()
         //    .Build();
+
+        public static string LoadJson(string path)
+        {
+            try
+            {
+                FileStream file = new FileStream(path, FileMode.Open);
+                StreamReader sr = new StreamReader(file, Encoding.Default);
+                string json = sr.ReadToEnd();
+                //MessageBox.Show(json);
+                file.Close();
+                return json;
+            }
+            catch (IOException ex)
+            {
+                return null;
+                //Console.WriteLine(e.ToString());
+            }
+        }
     }
 }

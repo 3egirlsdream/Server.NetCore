@@ -16,9 +16,9 @@ namespace MiddleServer.Domians
         public string OcrApi(string base64)
         {
             base64 = base64.Split(',').LastOrDefault();
-
-            string appKey = "9kx6kxwXaA7dCqUEDsNGMizA";
-            string secretKey = "jPMqQfHFh6XoHvoW7t1Ry9PHGOsx4S90";
+            //return base64;
+            string appKey = "0o4AsvCEAy6sF2ORZy2AGNg8";
+            string secretKey = "B4AHl3E6pzSfY36fcm3eATvyR0o5ktLG";
             string Url = "https://aip.baidubce.com/oauth/2.0/token";
 
             HttpClient client = new HttpClient();
@@ -30,13 +30,13 @@ namespace MiddleServer.Domians
             HttpResponseMessage message = client.PostAsync(Url, new FormUrlEncodedContent(keys)).Result;
             string result = message.Content.ReadAsStringAsync().Result;
             dynamic model = JsonConvert.DeserializeObject<dynamic>(result);
-            string access_token = "24.15877ce69fbfcbb481b82f7b504e10eb.2592000.1557745923.282335-16011829";// model.access_token as string;
+            string access_token = (string)model.access_token;// "24.15877ce69fbfcbb481b82f7b504e10eb.2592000.1557745923.282335-16011829";// model.access_token as string;
 
             //以上是获取token
 
             ///图像数据，base64编码进行urlencode
             ///是否检测图像朝向
-            string api = "https://aip.baidubce.com/rest/2.0/ocr/v1/general?access_token=" + access_token;
+            string api = "https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic?access_token=" + access_token;
             Encoding encoding = Encoding.Default;
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(api);
             request.Method = "post";
@@ -52,6 +52,8 @@ namespace MiddleServer.Domians
             var d = JsonConvert.DeserializeObject<Models.Root>(res);
 
             string s = "";
+            if (d.words_result == null)
+                return "Empty";
             foreach (var ds in d.words_result)
             {
                 s += ds.words as string + "\r\n";

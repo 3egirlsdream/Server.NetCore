@@ -26,9 +26,21 @@ namespace MiddleServer.Controllers
         [HttpGet("id={id}")]
         public object Get(string id)
         {
-            return id;
+            //return id;
             ImageReadDomain image = new ImageReadDomain();
             return image.OcrApi(id);
+        }
+
+        /// <summary>
+        /// 注册
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [EnableCors("any")]
+        [HttpGet("user={user}&pwd={pwd}")]
+        public void register(string user, string pwd)
+        {
+            Domians.User.Current.RegistUser(user, pwd);
         }
 
         // POST api/values
