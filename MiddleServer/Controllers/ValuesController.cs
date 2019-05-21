@@ -40,8 +40,17 @@ namespace MiddleServer.Controllers
         [HttpGet("user={user}&pwd={pwd}")]
         public void register(string user, string pwd)
         {
-            Domians.User.Current.RegistUser(user, pwd);
+            //Domains.User.Current.RegistUser(user, pwd);
         }
+
+        [EnableCors("any")]
+        [HttpGet("login/user={user}&pwd={pwd}")]
+        public object Login(string user, string pwd)
+        {
+            return Domains.User.Current.Login(user, pwd);
+        }
+
+
 
         // POST api/values
         [EnableCors("any")]
@@ -50,6 +59,14 @@ namespace MiddleServer.Controllers
         {
             ImageReadDomain image = new ImageReadDomain();
             return image.OcrApi((string)value);
+        }
+
+        // POST api/values
+        [EnableCors("any")]
+        [HttpPost("SignUp")]
+        public void SignUp([FromBody] Object value)
+        {
+            Domains.User.Current.RegistUser(value);
         }
 
         // PUT api/values/5

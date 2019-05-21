@@ -27,6 +27,7 @@ namespace MiddleServer.Models
         public string DISPLAY_NAME { get; set; }
         public string PARENT_NAME { get; set; }
         public string PASSWORD { get; set; }
+        public string IMG { get; set; }
     }
 }
 ﻿
