@@ -69,7 +69,7 @@ namespace MiddleServer.Domians
                 return new
                 {
                     success = true,
-                    data = result.CONTENT
+                    data = result
                 };
 
             }
