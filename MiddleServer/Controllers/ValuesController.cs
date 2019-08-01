@@ -80,5 +80,21 @@ namespace MiddleServer.Controllers
         public void Delete(int id)
         {
         }
+
+        // POST api/values
+        [EnableCors("any")]
+        [HttpPost("UpLoadImage")]
+        public object UpLoadImg([FromBody] Object value)
+        {
+            return ImageReadDomain.UpLoadImage(value.ToString());
+        }
+
+
+        [EnableCors("any")]
+        [HttpGet("getimage={getimage}")]
+        public object getImage(string getimage)
+        {
+            return ImageReadDomain.getImage(getimage);
+        }
     }
 }

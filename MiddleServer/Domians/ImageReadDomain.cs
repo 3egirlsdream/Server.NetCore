@@ -1,6 +1,9 @@
 ﻿using Newtonsoft.Json;
+using SqlSugar;
+using SugarModel;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -59,6 +62,62 @@ namespace MiddleServer.Domians
                 s += ds.words as string + "\r\n";
             }
             return s;
+        }
+
+
+        public static object UpLoadImage(string value)
+        {
+            var res = JsonConvert.DeserializeObject<dynamic>(value);
+            dynamic models = JsonConvert.DeserializeObject<dynamic>(res.ToString());
+            List<dynamic> title = JsonConvert.DeserializeObject<List<dynamic>>(models.title.ToString());
+            //var model = models.FirstOrDefault();
+            string code = title[0];// res.title;
+            string user = models.user;
+            string content = models.content;
+
+            byte[] bt = Convert.FromBase64String(code.Split(',')[1]);
+            string name = DateTime.Now.ToString("yyyyMMddHHmmss") + ".jpg";
+            using (var ms = new MemoryStream(bt))
+            {
+                Bitmap bit = new Bitmap(ms);
+                
+                bit.Save("../img/" + name, System.Drawing.Imaging.ImageFormat.Jpeg);
+            }
+
+            IMAGE info = new IMAGE
+            {
+                ID = Guid.NewGuid().ToString().ToUpper(),
+                DATETIME_CREATED = DateTime.Now,
+                STATE = "A",
+                USER_CREATED = user,
+                IMG_CODE = name,
+                IMG_BASE64 = content
+            };
+            using(var db = SugarContext.GetInstance())
+            {
+                db.Insertable(info).ExecuteCommand();
+            }
+            return new
+            {
+                success = true
+            };
+        }
+
+
+        public static object getImage(string user)
+        {
+            using(var db = SugarContext.GetInstance())
+            {
+                var result = db.Queryable<IMAGE>()
+                    .Where(x=>x.USER_CREATED == user)
+                    .OrderBy(x=>x.DATETIME_CREATED, OrderByType.Desc)
+                    .ToList();
+                return new
+                {
+                    success = true,
+                    data = result
+                };
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using MiddleServer.Models;
+using SqlSugar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,6 +51,7 @@ namespace MiddleServer.Domians
             using(var db = SugarContext.GetInstance())
             {
                 var result = db.Queryable<ARTICLE>()
+                    .OrderBy(e=>e.DATETIME_CREATED, OrderByType.Desc)
                     .Where(e => e.USER_CREATED == user).ToList();
                 return new
                 {

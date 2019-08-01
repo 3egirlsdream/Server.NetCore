@@ -12,7 +12,7 @@ namespace MiddleServer.Controllers
 {
     [Route("api/article")]
     [ApiController]
-    public class articleController : ControllerBase
+    public class ArticleController : ControllerBase
     {
         // GET api/values
         [HttpGet]
