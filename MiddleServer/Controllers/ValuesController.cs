@@ -96,5 +96,12 @@ namespace MiddleServer.Controllers
         {
             return ImageReadDomain.getImage(getimage);
         }
+
+        [EnableCors("any")]
+        [HttpGet("output/input={input}")]
+        public object Output(string input)
+        {
+            return MIDDLE_SERVER.Domians.Cmd.TestCmd(input);
+        }
     }
 }
