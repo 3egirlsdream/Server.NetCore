@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MiddleServer.Models
+namespace DotNetCoreServer.Models
 {
     public class Location
     {

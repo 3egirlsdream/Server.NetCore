@@ -4,11 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using MiddleServer.Domians;
+using DotNetCoreServer.Domians;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace MiddleServer.Controllers
+namespace DotNetCoreServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -102,6 +102,15 @@ namespace MiddleServer.Controllers
         public object Output(string input)
         {
             return MIDDLE_SERVER.Domians.Cmd.TestCmd(input);
+        }
+
+
+        [EnableCors("any")]
+        [HttpPost("getword/word")]
+        public object getword([FromBody] Object value)
+        {
+            var word = value.ToString();
+            return ImageReadDomain.getWord(word);
         }
     }
 }

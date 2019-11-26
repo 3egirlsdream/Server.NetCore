@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace MiddleServer.Domians
+namespace DotNetCoreServer.Domians
 {
     public class ImageReadDomain
     {
@@ -118,6 +118,42 @@ namespace MiddleServer.Domians
                     data = result
                 };
             }
+        }
+
+        /// <summary>
+        /// 词云
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static object getWord(string str)
+        {
+            var list = str.Split(' ');
+            Dictionary<string, int> dic = new Dictionary<string, int>();
+            foreach(var ds in list)
+            {
+                dic[ds] = 0;
+            }
+            foreach (var ds in list)
+            {
+                dic[ds] ++;
+            }
+            List<Model> models = new List<Model>();
+            foreach(var ds in dic)
+            {
+                Model model = new Model
+                {
+                    name = ds.Key,
+                    value = ds.Value
+                };
+                models.Add(model);
+            }
+            return models;
+        }
+
+        class Model
+        {
+            public string name { get; set; }
+            public int value { get; set; }
         }
     }
 }

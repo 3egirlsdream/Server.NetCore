@@ -2,12 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <RootNamespace>MiddleServer</RootNamespace>
+    <RootNamespace>DotNetCoreServer</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>bin\Debug\netcoreapp2.1\</OutputPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="SqlConn.json" />
+  </ItemGroup>
 
   <ItemGroup>
     <Folder Include="wwwroot\" />

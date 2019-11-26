@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MiddleServer.Domians;
+using DotNetCoreServer.Domians;
 using Newtonsoft.Json;
 
-namespace MiddleServer.Controllers
+namespace DotNetCoreServer.Controllers
 {
     [Route("api/article")]
     [ApiController]

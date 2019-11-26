@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MiddleServer.Models
+namespace DotNetCoreServer.Models
 {
     public class SYS_USER
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MiddleServer.Models
+namespace DotNetCoreServer.Models
 {
     internal partial class ARTICLE
     {

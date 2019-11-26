@@ -1,4 +1,4 @@
-﻿using MiddleServer.Models;
+﻿using DotNetCoreServer.Models;
 using Newtonsoft.Json;
 using SqlSugar;
 using System;
@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MiddleServer.Domains
+namespace DotNetCoreServer.Domains
 {
     public class User
     {
