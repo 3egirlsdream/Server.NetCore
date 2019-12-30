@@ -29,19 +29,12 @@ namespace DotNetCoreServer.Domians
 
                     db.Insertable(atc).ExecuteCommand();
                     db.Ado.CommitTran();
-                    return new
-                    {
-                        success = true
-                    };
+                    return true;
                 }
                 catch(Exception ex)
                 {
                     db.Ado.RollbackTran();
-                    return new
-                    {
-                        success = false,
-                        content = ex.Message
-                    };
+                    throw ex;
                 }
             }
         }
@@ -53,11 +46,7 @@ namespace DotNetCoreServer.Domians
                 var result = db.Queryable<ARTICLE>()
                     .OrderBy(e=>e.DATETIME_CREATED, OrderByType.Desc)
                     .Where(e => e.USER_CREATED == user).ToList();
-                return new
-                {
-                    success = true,
-                    data = result
-                };
+                return result;
 
             }
         }
@@ -68,11 +57,7 @@ namespace DotNetCoreServer.Domians
             {
                 var result = db.Queryable<ARTICLE>()
                     .Where(e => e.ID == id).First();
-                return new
-                {
-                    success = true,
-                    data = result
-                };
+                return result;
 
             }
         }

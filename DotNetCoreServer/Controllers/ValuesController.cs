@@ -44,12 +44,20 @@ namespace DotNetCoreServer.Controllers
         }
 
         [EnableCors("any")]
-        [HttpGet("login/user={user}&pwd={pwd}")]
-        public object Login(string user, string pwd)
+        [HttpGet("login/user={user}&pwd={pwd}", Name ="Login")]
+        public IActionResult Login(string user, string pwd)
         {
-            return Domains.User.Current.Login(user, pwd);
+            var res = Ok(Domains.User.Current.Login(user, pwd));
+            return res;
         }
 
+
+        [EnableCors("any")]
+        [HttpGet("test", Name = "test")]
+        public IActionResult test(string user, string pwd)
+        {
+            throw new Exception("ERRPR");
+        }
 
 
         // POST api/values

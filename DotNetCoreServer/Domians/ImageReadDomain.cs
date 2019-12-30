@@ -97,10 +97,7 @@ namespace DotNetCoreServer.Domians
             {
                 db.Insertable(info).ExecuteCommand();
             }
-            return new
-            {
-                success = true
-            };
+            return true;
         }
 
 
@@ -112,11 +109,7 @@ namespace DotNetCoreServer.Domians
                     .Where(x=>x.USER_CREATED == user)
                     .OrderBy(x=>x.DATETIME_CREATED, OrderByType.Desc)
                     .ToList();
-                return new
-                {
-                    success = true,
-                    data = result
-                };
+                return result;
             }
         }
 

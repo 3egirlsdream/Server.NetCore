@@ -41,20 +41,12 @@ namespace DotNetCoreServer.Domains
             {
                 if (!UserIsExist(user, db))
                 {
-                    return new
-                    {
-                        success = false,
-                        content = "用户不存在"
-                    };
+                    throw new Exception("用户不存在");
                 }
 
                 if (!PwdIsRight(user, pwd, db))
                 {
-                    return new
-                    {
-                        success = false,
-                        content = "密码错误"
-                    };
+                    throw new Exception("密码错误");
                 }
 
                 var res = db.Queryable<SYS_USER>()
@@ -62,19 +54,11 @@ namespace DotNetCoreServer.Domains
                 
                 if(res > 0)
                 {
-                    return new
-                    {
-                        success = true,
-                        content = "登录成功"
-                    };
+                    return "登录成功";
                 }
                 else
                 {
-                    return new
-                    {
-                        success = false,
-                        content = "账号或密码不正确"
-                    };
+                    throw new Exception("账号或密码不正确");
                 }
             }
            
