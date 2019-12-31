@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 
 namespace DotNetCoreServer.Controllers
 {
+    [Middleware("any", "初始类")]
     [Route("api/[controller]")]
     [ApiController]
     public class ValuesController : ControllerBase
@@ -22,7 +23,6 @@ namespace DotNetCoreServer.Controllers
         }
 
         // GET api/values/5
-        [EnableCors("any")]
         [HttpGet("id={id}")]
         public object Get(string id)
         {
@@ -36,14 +36,12 @@ namespace DotNetCoreServer.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [EnableCors("any")]
         [HttpGet("user={user}&pwd={pwd}")]
         public void register(string user, string pwd)
         {
             //Domains.User.Current.RegistUser(user, pwd);
         }
 
-        [EnableCors("any")]
         [HttpGet("login/user={user}&pwd={pwd}", Name ="Login")]
         public IActionResult Login(string user, string pwd)
         {
@@ -52,7 +50,6 @@ namespace DotNetCoreServer.Controllers
         }
 
 
-        [EnableCors("any")]
         [HttpGet("test", Name = "test")]
         public IActionResult test(string user, string pwd)
         {
@@ -61,7 +58,6 @@ namespace DotNetCoreServer.Controllers
 
 
         // POST api/values
-        [EnableCors("any")]
         [HttpPost("image")]
         public object Post([FromBody] Object value)
         {
@@ -70,7 +66,6 @@ namespace DotNetCoreServer.Controllers
         }
 
         // POST api/values
-        [EnableCors("any")]
         [HttpPost("SignUp")]
         public void SignUp([FromBody] Object value)
         {
@@ -90,7 +85,6 @@ namespace DotNetCoreServer.Controllers
         }
 
         // POST api/values
-        [EnableCors("any")]
         [HttpPost("UpLoadImage")]
         public object UpLoadImg([FromBody] Object value)
         {
@@ -98,14 +92,12 @@ namespace DotNetCoreServer.Controllers
         }
 
 
-        [EnableCors("any")]
         [HttpGet("getimage={getimage}")]
         public object getImage(string getimage)
         {
             return ImageReadDomain.getImage(getimage);
         }
 
-        [EnableCors("any")]
         [HttpGet("output/input={input}")]
         public object Output(string input)
         {
@@ -113,7 +105,6 @@ namespace DotNetCoreServer.Controllers
         }
 
 
-        [EnableCors("any")]
         [HttpPost("getword/word")]
         public object getword([FromBody] Object value)
         {

@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 
 namespace DotNetCoreServer.Controllers
 {
+    [Middleware("any", "文章类")]
     [Route("api/article")]
     [ApiController]
     public class ArticleController : ControllerBase
@@ -22,7 +23,6 @@ namespace DotNetCoreServer.Controllers
         }
 
 
-        [EnableCors("any")]
         [HttpPost("write")]
         public object Post([FromBody] Object value)
         {
@@ -33,14 +33,12 @@ namespace DotNetCoreServer.Controllers
             return WriteArticle.Current.newArticle(title, content, user);
         }
 
-        [EnableCors("any")]
         [HttpGet("user={user}")]
         public object GetAllArticle(string user)
         {
             return WriteArticle.Current.getArticle(user);
         }
 
-        [EnableCors("any")]
         [HttpGet("id={id}")]
         public object GetArticleContent(string id)
         {
