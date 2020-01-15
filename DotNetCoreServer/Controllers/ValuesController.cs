@@ -37,7 +37,7 @@ namespace DotNetCoreServer.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("user={user}&pwd={pwd}")]
-        public void register(string user, string pwd)
+        public void Register(string user, string pwd)
         {
             //Domains.User.Current.RegistUser(user, pwd);
         }
@@ -51,7 +51,7 @@ namespace DotNetCoreServer.Controllers
 
 
         [HttpGet("test", Name = "test")]
-        public IActionResult test(string user, string pwd)
+        public IActionResult Test(string user, string pwd)
         {
             throw new Exception("ERRPR");
         }
@@ -93,9 +93,9 @@ namespace DotNetCoreServer.Controllers
 
 
         [HttpGet("getimage={getimage}")]
-        public object getImage(string getimage)
+        public object GetImage(string getimage)
         {
-            return ImageReadDomain.getImage(getimage);
+            return ImageReadDomain.GetImage(getimage);
         }
 
         [HttpGet("output/input={input}")]
@@ -106,10 +106,10 @@ namespace DotNetCoreServer.Controllers
 
 
         [HttpPost("getword/word")]
-        public object getword([FromBody] Object value)
+        public object Getword([FromBody] Object value)
         {
             var word = value.ToString();
-            return ImageReadDomain.getWord(word);
+            return ImageReadDomain.GetWord(word);
         }
     }
 }

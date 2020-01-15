@@ -101,7 +101,7 @@ namespace DotNetCoreServer.Domians
         }
 
 
-        public static object getImage(string user)
+        public static object GetImage(string user)
         {
             using(var db = SugarContext.GetInstance())
             {
@@ -118,7 +118,7 @@ namespace DotNetCoreServer.Domians
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static object getWord(string str)
+        public static object GetWord(string str)
         {
             var list = str.Split(' ');
             Dictionary<string, int> dic = new Dictionary<string, int>();

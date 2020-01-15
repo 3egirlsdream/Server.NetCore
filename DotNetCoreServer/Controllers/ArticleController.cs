@@ -30,19 +30,26 @@ namespace DotNetCoreServer.Controllers
             string title = result.title;
             string content = result.content;
             string user = result.user;
-            return WriteArticle.Current.newArticle(title, content, user);
+            string category = result.category;
+            return WriteArticle.Current.NewArticle(title, content, user, category);
         }
 
         [HttpGet("user={user}")]
         public object GetAllArticle(string user)
         {
-            return WriteArticle.Current.getArticle(user);
+            return WriteArticle.Current.GetArticle(user);
+        }
+
+        [HttpGet("getarticlecategory")]
+        public object GetArticleCategory()
+        {
+            return WriteArticle.Current.GetArticleCategory();
         }
 
         [HttpGet("id={id}")]
         public object GetArticleContent(string id)
         {
-            return WriteArticle.Current.getArticleConent(id);
+            return WriteArticle.Current.GetArticleConent(id);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using DotNetCoreServer.Models;
 using SqlSugar;
+using SugarModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace DotNetCoreServer.Domians
         private static WriteArticle _Current;
         public static WriteArticle Current => _Current ?? new WriteArticle();
 
-        public object newArticle(string title, string content, string user)
+        public object NewArticle(string title, string content, string user, string category)
         {
             using(var db = SugarContext.GetInstance())
             {
@@ -26,6 +27,7 @@ namespace DotNetCoreServer.Domians
                     atc.ARTICLE_CODE = atc.ID;
                     atc.ARTICLE_NAME = title;
                     atc.CONTENT = content;
+                    atc.ARTICLE_CATEGORY = category;
 
                     db.Insertable(atc).ExecuteCommand();
                     db.Ado.CommitTran();
@@ -39,19 +41,43 @@ namespace DotNetCoreServer.Domians
             }
         }
 
-        public object getArticle(string user)
+        public object GetArticle(string user)
         {
             using(var db = SugarContext.GetInstance())
             {
-                var result = db.Queryable<ARTICLE>()
-                    .OrderBy(e=>e.DATETIME_CREATED, OrderByType.Desc)
-                    .Where(e => e.USER_CREATED == user).ToList();
+                var result = db.Queryable<ARTICLE, ARTICLE_CATEGORY>((a, c)=> new object[]
+                {
+                    JoinType.Inner,
+                    a.ARTICLE_CATEGORY == c.CATEGORY_CODE &&
+                    a.STATE == c.STATE
+                }).OrderBy(a=>a.DATETIME_CREATED, OrderByType.Desc)
+                    .Where(a => a.USER_CREATED == user && a.STATE == "A")
+                    .Select((a, c)=> new
+                    {
+                        a.IMG_CODE,
+                        a.ID,
+                        DATETIME_CREATED = a.DATETIME_CREATED.ToString("yyyy-MM-dd"),
+                        a.CONTENT,
+                        a.ARTICLE_NAME,
+                        a.ARTICLE_CODE,
+                        c.CATEGORY_CODE,
+                        c.CATEGORY_NAME
+                    }).ToList();
                 return result;
 
             }
         }
 
-        public object getArticleConent(string id)
+        public object GetArticleCategory()
+        {
+            using(var db = SugarContext.GetInstance())
+            {
+                var res = db.Queryable<ARTICLE_CATEGORY>().ToList();
+                return res;
+            }
+        }
+
+        public object GetArticleConent(string id)
         {
             using (var db = SugarContext.GetInstance())
             {

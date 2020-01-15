@@ -3,14 +3,14 @@ using System.Data;
 using System.Collections.Generic;
 namespace SugarModel
 {
-	internal partial class ARTICLE
+	internal partial class ARTICLE_CATEGORY
 	{
-		public ARTICLE()
+		public ARTICLE_CATEGORY()
 		{
 			//this.ID = GenerateNewID();
 			this.STATE = "A";
 		}
-		public ARTICLE(string id)
+		public ARTICLE_CATEGORY(string id)
 		{
 			this.ID = id;
 			this.STATE = "A";
@@ -21,11 +21,8 @@ namespace SugarModel
 		public DateTime? DATETIME_MODIFIED { get; set; }
 		public string USER_MODIFIED { get; set; }
 		public string STATE { get; set; }
-		public string ARTICLE_CODE { get; set; }
-		public string ARTICLE_NAME { get; set; }
-		public string CONTENT { get; set; }
-		public string IMG_CODE { get; set; }
-		public string ARTICLE_CATEGORY { get; set; }
+		public string CATEGORY_CODE { get; set; }
+		public string CATEGORY_NAME { get; set; }
 	}
 
 }

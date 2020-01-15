@@ -1,0 +1,1 @@
+dotnet DotNetCoreServer.dll
