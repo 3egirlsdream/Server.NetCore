@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="mp3\**" />
+    <Content Remove="mp3\**" />
+    <EmbeddedResource Remove="mp3\**" />
+    <None Remove="mp3\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Models\ResultExcutingContext.cs" />
   </ItemGroup>
 
