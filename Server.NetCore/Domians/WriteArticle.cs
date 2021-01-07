@@ -41,7 +41,7 @@ namespace DotNetCoreServer.Domians
             }
         }
 
-        public object GetArticle(string user)
+        public object GetArticle(string user, string category)
         {
             using(var db = SugarContext.GetInstance())
             {
@@ -52,7 +52,37 @@ namespace DotNetCoreServer.Domians
                     a.STATE == c.STATE
                 }).OrderBy(a=>a.DATETIME_CREATED, OrderByType.Desc)
                     .Where(a => a.USER_CREATED == user && a.STATE == "A")
+                    .WhereIF(!string.IsNullOrEmpty(category) && category != "全部", (a, c)=>a.ARTICLE_CATEGORY == category || c.CATEGORY_NAME == category)
                     .Select((a, c)=> new
+                    {
+                        a.IMG_CODE,
+                        a.ID,
+                        DATETIME_CREATED = a.DATETIME_CREATED.ToString("yyyy-MM-dd"),
+                        CONTENT = a.CONTENT.Substring(0, 200),
+                        a.ARTICLE_NAME,
+                        a.ARTICLE_CODE,
+                        c.CATEGORY_CODE,
+                        c.CATEGORY_NAME
+                    }).ToList();
+                return result;
+
+            }
+        }
+
+
+        public object GetArticlesToPage(string user, string category, int startIndex, int length)
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                var result = db.Queryable<ARTICLE, ARTICLE_CATEGORY>((a, c) => new object[]
+                {
+                    JoinType.Inner,
+                    a.ARTICLE_CATEGORY == c.CATEGORY_CODE &&
+                    a.STATE == c.STATE
+                }).OrderBy(a => a.DATETIME_CREATED, OrderByType.Desc)
+                    .Where(a => a.USER_CREATED == user && a.STATE == "A")
+                    .WhereIF(!string.IsNullOrEmpty(category) && category != "全部", (a, c) => a.ARTICLE_CATEGORY == category || c.CATEGORY_NAME == category)
+                    .Select((a, c) => new
                     {
                         a.IMG_CODE,
                         a.ID,
@@ -62,7 +92,7 @@ namespace DotNetCoreServer.Domians
                         a.ARTICLE_CODE,
                         c.CATEGORY_CODE,
                         c.CATEGORY_NAME
-                    }).ToList();
+                    }).ToPageList(startIndex, length);
                 return result;
 
             }

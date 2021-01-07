@@ -34,10 +34,16 @@ namespace DotNetCoreServer.Controllers
             return WriteArticle.Current.NewArticle(title, content, user, category);
         }
 
-        [HttpGet("user={user}")]
-        public object GetAllArticle(string user)
+        [HttpGet("user={user}&category={category}")]
+        public object GetAllArticle(string user, string category)
         {
-            return WriteArticle.Current.GetArticle(user);
+            return WriteArticle.Current.GetArticle(user, category);
+        }
+
+        [HttpGet("page/user={user}&category={category}&startIndex={startIndex}&length={length}")]
+        public object GetArticlesToPage(string user, string category, int startIndex, int length)
+        {
+            return WriteArticle.Current.GetArticlesToPage(user, category, startIndex, length);
         }
 
         [HttpGet("getarticlecategory")]
