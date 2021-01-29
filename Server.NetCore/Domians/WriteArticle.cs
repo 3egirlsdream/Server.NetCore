@@ -1,4 +1,5 @@
 ﻿using DotNetCoreServer.Models;
+using Newtonsoft.Json.Linq;
 using SqlSugar;
 using SugarModel;
 using System;
@@ -45,24 +46,18 @@ namespace DotNetCoreServer.Domians
         {
             using(var db = SugarContext.GetInstance())
             {
-                var result = db.Queryable<ARTICLE, ARTICLE_CATEGORY>((a, c)=> new object[]
-                {
-                    JoinType.Inner,
-                    a.ARTICLE_CATEGORY == c.CATEGORY_CODE &&
-                    a.STATE == c.STATE
-                }).OrderBy(a=>a.DATETIME_CREATED, OrderByType.Desc)
+                var result = db.Queryable<ARTICLE>().OrderBy(a => a.DATETIME_CREATED, OrderByType.Desc)
                     .Where(a => a.USER_CREATED == user && a.STATE == "A")
-                    .WhereIF(!string.IsNullOrEmpty(category) && category != "全部", (a, c)=>a.ARTICLE_CATEGORY == category || c.CATEGORY_NAME == category)
-                    .Select((a, c)=> new
+                    .WhereIF(!string.IsNullOrEmpty(category) && category != "全部", (a)=>a.ARTICLE_CATEGORY.Contains(category))
+                    .Select((a)=> new
                     {
                         a.IMG_CODE,
                         a.ID,
-                        DATETIME_CREATED = a.DATETIME_CREATED.ToString("yyyy-MM-dd"),
+                        DATETIME_CREATED = Convert.ToDateTime(a.DATETIME_CREATED.ToString("yyyy-MM-dd HH:mm:ss")),
                         CONTENT = a.CONTENT.Substring(0, 200),
                         a.ARTICLE_NAME,
                         a.ARTICLE_CODE,
-                        c.CATEGORY_CODE,
-                        c.CATEGORY_NAME
+                        a.ARTICLE_CATEGORY
                     }).ToList();
                 return result;
 
@@ -74,24 +69,18 @@ namespace DotNetCoreServer.Domians
         {
             using (var db = SugarContext.GetInstance())
             {
-                var result = db.Queryable<ARTICLE, ARTICLE_CATEGORY>((a, c) => new object[]
-                {
-                    JoinType.Inner,
-                    a.ARTICLE_CATEGORY == c.CATEGORY_CODE &&
-                    a.STATE == c.STATE
-                }).OrderBy(a => a.DATETIME_CREATED, OrderByType.Desc)
+                var result = db.Queryable<ARTICLE>().OrderBy(a => a.DATETIME_CREATED, OrderByType.Desc)
                     .Where(a => a.USER_CREATED == user && a.STATE == "A")
-                    .WhereIF(!string.IsNullOrEmpty(category) && category != "全部", (a, c) => a.ARTICLE_CATEGORY == category || c.CATEGORY_NAME == category)
-                    .Select((a, c) => new
+                    .WhereIF(!string.IsNullOrEmpty(category) && category != "全部", (a) => a.ARTICLE_CATEGORY.Contains(category))
+                    .Select((a) => new
                     {
                         a.IMG_CODE,
                         a.ID,
                         DATETIME_CREATED = a.DATETIME_CREATED.ToString("yyyy-MM-dd"),
-                        a.CONTENT,
+                        //a.CONTENT,
                         a.ARTICLE_NAME,
                         a.ARTICLE_CODE,
-                        c.CATEGORY_CODE,
-                        c.CATEGORY_NAME
+                        a.ARTICLE_CATEGORY
                     }).ToPageList(startIndex, length);
                 return result;
 
@@ -115,6 +104,53 @@ namespace DotNetCoreServer.Domians
                     .Where(e => e.ID == id).First();
                 return result;
 
+            }
+        }
+
+        public object GetAllArticle(string user)
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                var result = db.Queryable<ARTICLE>().OrderBy(a => a.DATETIME_CREATED, OrderByType.Desc)
+                    .Where(a => a.USER_CREATED == user && a.STATE == "A")
+                    .Select((a) => new
+                    {
+                        a.IMG_CODE,
+                        a.ID,
+                        CONTENT = a.CONTENT,
+                        a.ARTICLE_NAME,
+                        a.ARTICLE_CODE,
+                        a.ARTICLE_CATEGORY
+                    }).ToList();
+                return result;
+
+            }
+        }
+
+        public object EditArticle(JToken jt)
+        {
+            var id = jt["ID"]?.ToString();
+            var name = jt["NAME"]?.ToString();
+            var content = jt["CONTENT"]?.ToString();
+            var category = jt["CATEGORY"]?.ToString();
+            using (var db = SugarContext.GetInstance())
+            {
+                var article = db.Queryable<ARTICLE>().Where(x => x.ID == id).ToList().FirstOrDefault();
+                article.CONTENT = content;
+                article.ARTICLE_NAME = name;
+                article.ARTICLE_CATEGORY = category;
+                article.DATETIME_MODIFIED = DateTime.Now;
+                db.Updateable(article).Where(x=>x.ID == article.ID).ExecuteCommand();
+            }
+            return true;
+        }
+
+
+        public void Delete(string id)
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                db.Ado.ExecuteCommand($"update ARTICLE set state = 'D', datetime_modified = GetDate() where id = '{id}'");
             }
         }
     }

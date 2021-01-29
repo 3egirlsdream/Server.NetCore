@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using DotNetCoreServer.Domians;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace DotNetCoreServer.Controllers
 {
@@ -16,11 +17,11 @@ namespace DotNetCoreServer.Controllers
     public class ArticleController : ControllerBase
     {
         // GET api/values
-        [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
+        //[HttpGet]
+        //public ActionResult<IEnumerable<string>> Get()
+        //{
+        //    return new string[] { "value1", "value2" };
+        //}
 
 
         [HttpPost("write")]
@@ -56,6 +57,26 @@ namespace DotNetCoreServer.Controllers
         public object GetArticleContent(string id)
         {
             return WriteArticle.Current.GetArticleConent(id);
+        }
+
+        [HttpGet("GetAllArticle")]
+        public object GetAllArticle(string user)
+        {
+            return WriteArticle.Current.GetAllArticle(user);
+        }
+
+
+        [HttpPost("EditArticle")]
+        public object EditArticle(JToken jt)
+        {
+            return WriteArticle.Current.EditArticle(jt);
+        }
+
+
+        [HttpGet("Delete")]
+        public void Delete(string id)
+        {
+            WriteArticle.Current.Delete(id);
         }
     }
 }
