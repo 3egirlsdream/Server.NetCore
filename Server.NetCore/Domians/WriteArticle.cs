@@ -14,7 +14,7 @@ namespace DotNetCoreServer.Domians
         private static WriteArticle _Current;
         public static WriteArticle Current => _Current ?? new WriteArticle();
 
-        public object NewArticle(string title, string content, string user, string category)
+        public object NewArticle(string title, string content, string user, string category, string last, string next)
         {
             using(var db = SugarContext.GetInstance())
             {
@@ -29,8 +29,25 @@ namespace DotNetCoreServer.Domians
                     atc.ARTICLE_NAME = title;
                     atc.CONTENT = content;
                     atc.ARTICLE_CATEGORY = category;
+                    atc.LAST_ESSAY = last;
+                    atc.NEXT_ESSAY = next;
 
                     db.Insertable(atc).ExecuteCommand();
+
+                    var lastEssay = db.Queryable<ARTICLE>().Where(x => x.ID == last).ToList().FirstOrDefault();
+                    if(lastEssay != null)
+                    {
+                        lastEssay.NEXT_ESSAY = atc.ID;
+                        db.Updateable(lastEssay).ExecuteCommand();
+                    }
+
+                    var nextEssay = db.Queryable<ARTICLE>().Where(x => x.ID == next).ToList().FirstOrDefault();
+                    if(nextEssay != null)
+                    {
+                        nextEssay.LAST_ESSAY = atc.ID;
+                        db.Updateable(nextEssay).ExecuteCommand();
+                    }
+
                     db.Ado.CommitTran();
                     return true;
                 }
@@ -46,10 +63,14 @@ namespace DotNetCoreServer.Domians
         {
             using(var db = SugarContext.GetInstance())
             {
-                var result = db.Queryable<ARTICLE>().OrderBy(a => a.DATETIME_CREATED, OrderByType.Desc)
-                    .Where(a => a.USER_CREATED == user && a.STATE == "A")
-                    .WhereIF(!string.IsNullOrEmpty(category) && category != "全部", (a)=>a.ARTICLE_CATEGORY.Contains(category))
-                    .Select((a)=> new
+                var result = db.Queryable<ARTICLE, ARTICLE, ARTICLE>((a, a2, a3) => new
+                (
+                    JoinType.Left, a.LAST_ESSAY == a2.ID,
+                    JoinType.Left, a.NEXT_ESSAY == a3.ID
+                )).OrderBy((a, a2, a3) => a.DATETIME_CREATED, OrderByType.Desc)
+                    .Where((a, a2, a3) => a.USER_CREATED == user && a.STATE == "A")
+                    .WhereIF(!string.IsNullOrEmpty(category) && category != "全部", (a, a2, a3) => a.ARTICLE_CATEGORY.Contains(category))
+                    .Select((a, a2, a3) => new
                     {
                         a.IMG_CODE,
                         a.ID,
@@ -57,7 +78,11 @@ namespace DotNetCoreServer.Domians
                         CONTENT = a.CONTENT.Substring(0, 200),
                         a.ARTICLE_NAME,
                         a.ARTICLE_CODE,
-                        a.ARTICLE_CATEGORY
+                        a.ARTICLE_CATEGORY,
+                        a.LAST_ESSAY,
+                        LAST_ESSAY_NAME = a2.ARTICLE_NAME,
+                        a.NEXT_ESSAY,
+                        NEXT_ESSAY_NAME = a3.ARTICLE_NAME
                     }).ToList();
                 return result;
 
@@ -69,10 +94,14 @@ namespace DotNetCoreServer.Domians
         {
             using (var db = SugarContext.GetInstance())
             {
-                var result = db.Queryable<ARTICLE>().OrderBy(a => a.DATETIME_CREATED, OrderByType.Desc)
-                    .Where(a => a.USER_CREATED == user && a.STATE == "A")
-                    .WhereIF(!string.IsNullOrEmpty(category) && category != "全部", (a) => a.ARTICLE_CATEGORY.Contains(category))
-                    .Select((a) => new
+                var result = db.Queryable<ARTICLE, ARTICLE, ARTICLE>((a, a2, a3) => new
+                (
+                    JoinType.Left, a.LAST_ESSAY == a2.ID,
+                    JoinType.Left, a.NEXT_ESSAY == a3.ID
+                )).OrderBy((a, a2, a3) => a.DATETIME_CREATED, OrderByType.Desc)
+                    .Where((a, a2, a3) => a.USER_CREATED == user && a.STATE == "A")
+                    .WhereIF(!string.IsNullOrEmpty(category) && category != "全部", (a, a2, a3) => a.ARTICLE_CATEGORY.Contains(category))
+                    .Select((a, a2, a3) => new
                     {
                         a.IMG_CODE,
                         a.ID,
@@ -80,7 +109,11 @@ namespace DotNetCoreServer.Domians
                         //a.CONTENT,
                         a.ARTICLE_NAME,
                         a.ARTICLE_CODE,
-                        a.ARTICLE_CATEGORY
+                        a.ARTICLE_CATEGORY,
+                        a.LAST_ESSAY,
+                        LAST_ESSAY_NAME = a2.ARTICLE_NAME,
+                        a.NEXT_ESSAY,
+                        NEXT_ESSAY_NAME = a3.ARTICLE_NAME
                     }).ToPageList(startIndex, length);
                 return result;
 
@@ -100,8 +133,24 @@ namespace DotNetCoreServer.Domians
         {
             using (var db = SugarContext.GetInstance())
             {
-                var result = db.Queryable<ARTICLE>()
-                    .Where(e => e.ID == id).First();
+                var result = db.Queryable<ARTICLE, ARTICLE, ARTICLE>((a, a2, a3) => new
+                (
+                    JoinType.Left, a.LAST_ESSAY == a2.ID,
+                    JoinType.Left, a.NEXT_ESSAY == a3.ID
+                )).Where((a, a2, a3) => a.ID == id).Select((a, a2, a3)=>new
+                {
+                    a.IMG_CODE,
+                    a.ID,
+                    DATETIME_CREATED = Convert.ToDateTime(a.DATETIME_CREATED.ToString("yyyy-MM-dd HH:mm:ss")),
+                    a.CONTENT,
+                    a.ARTICLE_NAME,
+                    a.ARTICLE_CODE,
+                    a.ARTICLE_CATEGORY,
+                    a.LAST_ESSAY,
+                    LAST_ESSAY_NAME = a2.ARTICLE_NAME,
+                    a.NEXT_ESSAY,
+                    NEXT_ESSAY_NAME = a3.ARTICLE_NAME
+                }).First();
                 return result;
 
             }
@@ -111,16 +160,24 @@ namespace DotNetCoreServer.Domians
         {
             using (var db = SugarContext.GetInstance())
             {
-                var result = db.Queryable<ARTICLE>().OrderBy(a => a.DATETIME_CREATED, OrderByType.Desc)
-                    .Where(a => a.USER_CREATED == user && a.STATE == "A")
-                    .Select((a) => new
+                var result = db.Queryable<ARTICLE, ARTICLE, ARTICLE>((a, a2, a3)=> new
+                (
+                    JoinType.Left, a.LAST_ESSAY == a2.ID,
+                    JoinType.Left, a.NEXT_ESSAY == a3.ID
+                )).OrderBy((a, a2, a3) => a.DATETIME_CREATED, OrderByType.Desc)
+                    .Where((a, a2, a3) => a.USER_CREATED == user && a.STATE == "A")
+                    .Select((a, a2, a3) => new
                     {
                         a.IMG_CODE,
                         a.ID,
                         CONTENT = a.CONTENT,
                         a.ARTICLE_NAME,
                         a.ARTICLE_CODE,
-                        a.ARTICLE_CATEGORY
+                        a.ARTICLE_CATEGORY,
+                        a.LAST_ESSAY,
+                        LAST_ESSAY_NAME = a2.ARTICLE_NAME,
+                        a.NEXT_ESSAY,
+                        NEXT_ESSAY_NAME = a3.ARTICLE_NAME
                     }).ToList();
                 return result;
 
@@ -133,14 +190,43 @@ namespace DotNetCoreServer.Domians
             var name = jt["NAME"]?.ToString();
             var content = jt["CONTENT"]?.ToString();
             var category = jt["CATEGORY"]?.ToString();
+            var last = jt["last"]?.ToString();
+            var next = jt["next"]?.ToString();
             using (var db = SugarContext.GetInstance())
             {
-                var article = db.Queryable<ARTICLE>().Where(x => x.ID == id).ToList().FirstOrDefault();
-                article.CONTENT = content;
-                article.ARTICLE_NAME = name;
-                article.ARTICLE_CATEGORY = category;
-                article.DATETIME_MODIFIED = DateTime.Now;
-                db.Updateable(article).Where(x=>x.ID == article.ID).ExecuteCommand();
+                db.Ado.BeginTran();
+                try
+                {
+                    var article = db.Queryable<ARTICLE>().Where(x => x.ID == id).ToList().FirstOrDefault();
+                    article.CONTENT = content;
+                    article.ARTICLE_NAME = name;
+                    article.ARTICLE_CATEGORY = category;
+                    article.DATETIME_MODIFIED = DateTime.Now;
+                    article.LAST_ESSAY = last;
+                    article.NEXT_ESSAY = next;
+                    db.Updateable(article).Where(x => x.ID == article.ID).ExecuteCommand();
+
+
+                    var lastEssay = db.Queryable<ARTICLE>().Where(x => x.ID == last).ToList().FirstOrDefault();
+                    if (lastEssay != null)
+                    {
+                        lastEssay.NEXT_ESSAY = article.ID;
+                        db.Updateable(lastEssay).ExecuteCommand();
+                    }
+
+                    var nextEssay = db.Queryable<ARTICLE>().Where(x => x.ID == next).ToList().FirstOrDefault();
+                    if (nextEssay != null)
+                    {
+                        nextEssay.LAST_ESSAY = article.ID;
+                        db.Updateable(nextEssay).ExecuteCommand();
+                    }
+                    db.Ado.CommitTran();
+                }
+                catch(Exception ex)
+                {
+                    db.Ado.RollbackTran();
+                    throw ex;
+                }
             }
             return true;
         }

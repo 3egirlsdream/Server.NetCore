@@ -32,7 +32,9 @@ namespace DotNetCoreServer.Controllers
             string content = result.content;
             string user = result.user;
             string category = result.category;
-            return WriteArticle.Current.NewArticle(title, content, user, category);
+            string last = result.last;
+            string next = result.next;
+            return WriteArticle.Current.NewArticle(title, content, user, category, last, next);
         }
 
         [HttpGet("user={user}&category={category}")]
