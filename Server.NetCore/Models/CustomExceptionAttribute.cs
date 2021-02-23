@@ -20,7 +20,7 @@ namespace DotNetCoreServer.Models
             //处理各种异常
 
             context.ExceptionHandled = true;
-            context.Result = new CustomExceptionResult((int)status, context.Exception);
+            context.Result = new CustomExceptionResult(200, context.Exception);
         }
     }
 

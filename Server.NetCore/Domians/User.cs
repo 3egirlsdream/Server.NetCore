@@ -39,29 +39,72 @@ namespace DotNetCoreServer.Domains
         {
             using(var db = SugarContext.GetInstance())
             {
-                if (!UserIsExist(user, db))
+                try
                 {
-                    throw new Exception("用户不存在");
-                }
+                    if (!UserIsExist(user, db))
+                    {
+                        throw new Exception("用户不存在");
+                    }
 
-                if (!PwdIsRight(user, pwd, db))
-                {
-                    throw new Exception("密码错误");
-                }
+                    if (!PwdIsRight(user, pwd, db))
+                    {
+                        throw new Exception("密码错误");
+                    }
 
-                var res = db.Queryable<SYS_USER>()
-                    .Where(e => e.USER_NAME == user && e.PASSWORD == pwd).Count();
-                
-                if(res > 0)
-                {
-                    return "登录成功";
+                    var res = db.Queryable<SYS_USER>()
+                        .Where(e => e.USER_NAME == user && e.PASSWORD == pwd).First();
+
+                    if (res != null)
+                    {
+                        return new
+                        {
+                            Message = "登录成功",
+                            data = res
+                        };
+                    }
+                    else
+                    {
+                        throw new Exception("账号或密码不正确");
+                    }
                 }
-                else
+                catch(Exception ex)
                 {
-                    throw new Exception("账号或密码不正确");
+                    throw ex;
                 }
             }
            
+        }
+
+        public object GetUserInfo(string username)
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                try
+                {
+                    if (!UserIsExist(username, db))
+                    {
+                        throw new Exception("用户不存在");
+                    }
+
+
+                    var res = db.Queryable<SYS_USER>()
+                        .Where(e => e.USER_NAME == username).First();
+
+                    if (res != null)
+                    {
+                        return res;
+                    }
+                    else
+                    {
+                        throw new Exception("账号或密码不正确");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            }
+
         }
 
         /// <summary>

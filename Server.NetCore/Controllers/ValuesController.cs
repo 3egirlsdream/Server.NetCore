@@ -49,6 +49,12 @@ namespace DotNetCoreServer.Controllers
             return res;
         }
 
+        [HttpGet("GetUserInfo")]
+        public object GetUserInfo(string username)
+        {
+            return Domains.User.Current.GetUserInfo(username);
+        }
+
 
         [HttpGet("test", Name = "test")]
         public IActionResult Test(string user, string pwd)
