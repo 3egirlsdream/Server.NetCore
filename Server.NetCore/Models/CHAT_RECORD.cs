@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace DotNetCoreServer.Models
 {
-    public class SYS_USER
+    public class CHAT_RECORD
     {
-        public SYS_USER()
+        public CHAT_RECORD()
         {
             //this.ID = GenerateNewID();
             this.STATE = "A";
         }
-        public SYS_USER(string id)
+        public CHAT_RECORD(string id)
         {
             this.ID = id;
             this.STATE = "A";
@@ -25,11 +25,8 @@ namespace DotNetCoreServer.Models
         public string USER_MODIFIED { get; set; }
         public DateTime? DATETIME_MODIFIED { get; set; }
         public string STATE { get; set; }
-        public string USER_NAME { get; set; }
-        public string DISPLAY_NAME { get; set; }
-        public string PARENT_NAME { get; set; }
-        public string PASSWORD { get; set; }
-        public string IMG { get; set; }
+        public string GROUP_ID { get; set; }
+        public string CHAR_RECORD { get; set; }
     }
 }
 ﻿

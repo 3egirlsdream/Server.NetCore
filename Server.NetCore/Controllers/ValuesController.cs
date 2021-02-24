@@ -117,5 +117,36 @@ namespace DotNetCoreServer.Controllers
             var word = value.ToString();
             return ImageReadDomain.GetWord(word);
         }
+
+
+        [HttpGet("GetChatRecord")]
+        public object GetChatRecord(string GroupId)
+        {
+            return Domains.User.Current.GetChatRecord(GroupId);
+        }
+
+
+        [HttpPost("UpChatRecord")]
+        public void UpChatRecord(JToken jt)
+        {
+            string GroupId = jt["GroupId"]?.ToString();
+            string ChatRecord = jt["ChatRecord"]?.ToString();
+            Domains.User.Current.UpChatRecord(GroupId, ChatRecord);
+        }
+
+
+        [HttpGet("GetChatList")]
+        public object GetChatList(string username)
+        {
+            return Domains.User.Current.GetChatList(username);
+        }
+
+
+
+        [HttpGet("UpdateList")]
+        public void UpdateList(string groupId, string groupName, string users)
+        {
+            Domains.User.Current.UpdateList(groupId, groupName, users);
+        }
     }
 }
