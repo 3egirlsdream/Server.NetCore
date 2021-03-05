@@ -11,16 +11,28 @@ namespace DotNetCoreServer.Models
     /// <summary>
     /// 封装统一处理异常
     /// </summary>
-    public class CustomExceptionAttribute : IExceptionFilter
+    public class CustomExceptionAttribute : ExceptionFilterAttribute
     {
-        public void OnException(ExceptionContext context)
+        public override void OnException(ExceptionContext context)
         {
             HttpStatusCode status = HttpStatusCode.InternalServerError;
-
+            var exceptionType = context.Exception.GetType();
+            if(exceptionType == typeof(UnauthorizedAccessException))
+            {
+                status = HttpStatusCode.Unauthorized;
+            }
+            else if(exceptionType == typeof(DivideByZeroException))
+            {
+                status = HttpStatusCode.InternalServerError;
+            }
+            else
+            {
+                status = HttpStatusCode.NotFound;
+            }
             //处理各种异常
 
             context.ExceptionHandled = true;
-            context.Result = new CustomExceptionResult(200, context.Exception);
+            context.Result = new CustomExceptionResult((int)status, context.Exception);
         }
     }
 

@@ -87,6 +87,30 @@ namespace DotNetCoreServer
                     }
                 });
             });
+
+            services.AddSignalR();
+            services.AddCors(options =>
+            {
+                //登录用户使用
+                options.AddPolicy("any", builder =>
+                {
+                    builder.SetIsOriginAllowed(origin => true)
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
+                });
+                //公开使用
+                options.AddPolicy("all", builder =>
+                {
+                    builder.WithOrigins("*")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+                });
+            });
+            services.AddSignalR(options =>
+            {
+                options.MaximumReceiveMessageSize = null;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -115,6 +139,7 @@ namespace DotNetCoreServer
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<IM.ChatHub>("/chatHub");
                 endpoints.MapControllers();
             });
         }

@@ -175,16 +175,14 @@ namespace DotNetCoreServer.Domains
 
         public void UpChatRecord(string groupId, string chatRecord)
         {
-            try
+            using (var db = SugarContext.GetInstance())
             {
-                using (var db = SugarContext.GetInstance())
+                db.Ado.BeginTran();
+                try
                 {
                     var rs = db.Queryable<CHAT_RECORD>().Where(x => x.GROUP_ID == groupId && x.STATE == "A").ToList().FirstOrDefault();
-                    if(rs == null)
+                    if (rs == null)
                     {
-                        var record = JsonConvert.DeserializeObject<dynamic>(chatRecord);
-                        var records = new List<dynamic>();
-                        records.Add(record);
                         rs = new CHAT_RECORD
                         {
                             ID = Guid.NewGuid().ToString("N").ToUpper(),
@@ -192,7 +190,7 @@ namespace DotNetCoreServer.Domains
                             USER_CREATED = "SYS",
                             STATE = "A",
                             GROUP_ID = groupId,
-                            CHAR_RECORD = JsonConvert.SerializeObject(records)
+                            CHAR_RECORD = chatRecord
                         };
                         db.Insertable(rs).ExecuteCommand();
                     }
@@ -200,37 +198,77 @@ namespace DotNetCoreServer.Domains
                     {
                         try
                         {
-                            var record = JsonConvert.DeserializeObject<List<dynamic>>(rs.CHAR_RECORD);
-                            var cr = JsonConvert.DeserializeObject<dynamic>(chatRecord);
-                            record.Add(cr);
-                            if(record.Count > 200)
+                            var record = JsonConvert.DeserializeObject<List<dynamic>>(chatRecord);
+                            if (record.Count > 50)
                             {
-                                record = record.Skip(200).Take(record.Count - 200).ToList();
+                                record = record.Skip(50).Take(record.Count - 50).ToList();
                             }
                             rs.CHAR_RECORD = JsonConvert.SerializeObject(record);
                             db.Updateable(rs).ExecuteCommand();
                         }
                         catch
                         {
-                            var record = JsonConvert.DeserializeObject<dynamic>(rs.CHAR_RECORD);
-                            var cr = JsonConvert.DeserializeObject<dynamic>(chatRecord);
+                            var record = JsonConvert.DeserializeObject<dynamic>(chatRecord);
                             var records = new List<dynamic>();
                             records.Add(record);
-                            records.Add(cr);
-                            if (records.Count > 200)
+                            if (records.Count > 50)
                             {
-                                records = records.Skip(200).Take(records.Count - 200).ToList();
+                                records = records.Skip(50).Take(records.Count - 50).ToList();
                             }
                             rs.CHAR_RECORD = JsonConvert.SerializeObject(records);
                             db.Updateable(rs).ExecuteCommand();
                         }
-                        
                     }
+
+                    //将最新一条聊天记录写入最新聊天记录表
+                    try
+                    {
+                        var records = JsonConvert.DeserializeObject<List<dynamic>>(chatRecord);
+                        if (records.Count > 0)
+                        {
+                            string record = records.Last().content;
+                            AddNewestRecord(db, groupId, record);
+                        }
+                    }
+                    catch
+                    {
+                        var record = JsonConvert.DeserializeObject<dynamic>(chatRecord);
+                        AddNewestRecord(db, groupId, (string)record.content);
+                    }
+
+                    db.Ado.CommitTran();
+                }
+                catch (Exception ex)
+                {
+                    db.Ado.RollbackTran();
+                    throw ex;
                 }
             }
-            catch (Exception ex)
+
+        }
+
+
+        public void AddNewestRecord(SqlSugarClient db, string groupId, string record)
+        {
+            var user = db.Queryable<NEWEST_CHAT_RECORD>().Where(c => c.GROUP_ID == groupId).ToList().FirstOrDefault();
+            if(user == null)
             {
-                throw ex;
+                user = new NEWEST_CHAT_RECORD
+                {
+                    ID = Guid.NewGuid().ToString("N").ToUpper(),
+                    DATETIME_CREATED = DateTime.Now,
+                    USER_CREATED = "SYS",
+                    STATE = "A",
+                    GROUP_ID = groupId,
+                    NEWEST_CHAR_RECORD = record
+                };
+                db.Insertable(user).ExecuteCommand();
+            }
+            else
+            {
+                user.NEWEST_CHAR_RECORD = record;
+                user.DATETIME_MODIFIED = DateTime.Now;
+                db.Updateable(user).ExecuteCommand();
             }
         }
 
@@ -275,7 +313,8 @@ namespace DotNetCoreServer.Domains
                                 {
                                     USERS = username,
                                     GROUP_ID = string.Join(';', friends.OrderBy(c => c.Length).OrderBy(c => c[0])),
-                                    GROUP_NAME = friend_info?.DISPLAY_NAME
+                                    GROUP_NAME = friend_info?.DISPLAY_NAME,
+                                    ID = friend_info?.IMG
                                 };
                                 list.Add(m);
                             }
@@ -324,5 +363,76 @@ namespace DotNetCoreServer.Domains
                 }
             }
         }
+
+
+
+        public List<string> GetEmoji(string groupId)
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                var result = db.Queryable<EMOJI>().Where(x => x.GROUP_ID == groupId).ToList().FirstOrDefault();
+                if(result == null)
+                {
+                    return new List<string>();
+                }
+                else
+                {
+                    return JsonConvert.DeserializeObject<List<string>>(result.URLS);
+                }
+            }
+        }
+
+        public void AddEmoji(string groupId, string url)
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                var result = db.Queryable<EMOJI>().Where(x => x.GROUP_ID == groupId).ToList().FirstOrDefault();
+                var list = new List<string>();
+                if (result == null)
+                {
+                    list.Add(url);
+                    result = new EMOJI
+                    {
+                        ID = Guid.NewGuid().ToString("N").ToUpper(),
+                        DATETIME_CREATED = DateTime.Now,
+                        USER_CREATED = "SYS",
+                        STATE = "A",
+                        GROUP_ID = groupId,
+                        URLS = JsonConvert.SerializeObject(list)
+                    };
+                    db.Insertable(result).ExecuteCommand();
+                }
+                else
+                {
+                    var rs =  JsonConvert.DeserializeObject<List<string>>(result.URLS);
+                    if(!rs.Contains(url)) rs.Add(url);
+                    result.URLS = JsonConvert.SerializeObject(rs);
+                    db.Updateable(result).ExecuteCommand();
+                }
+                
+            }
+        }
+
+        public void DeleteEmoji(string groupId, string url)
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                var result = db.Queryable<EMOJI>().Where(x => x.GROUP_ID == groupId).ToList().FirstOrDefault();
+                var list = new List<string>();
+                if (result == null)
+                {
+                    return;
+                }
+                else
+                {
+                    var rs = JsonConvert.DeserializeObject<List<string>>(result.URLS);
+                    rs.Remove(url);
+                    result.URLS = JsonConvert.SerializeObject(rs);
+                    db.Updateable(result).ExecuteCommand();
+                }
+
+            }
+        }
+
     }
 }

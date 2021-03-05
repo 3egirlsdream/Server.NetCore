@@ -148,5 +148,25 @@ namespace DotNetCoreServer.Controllers
         {
             Domains.User.Current.UpdateList(groupId, groupName, users);
         }
+
+
+        [HttpGet("GetEmoji")]
+        public object GetEmoji(string groupId)
+        {
+            return Domains.User.Current.GetEmoji(groupId);
+        }
+
+
+        [HttpGet("AddEmoji")]
+        public void AddEmoji(string groupId, string url)
+        {
+            Domains.User.Current.AddEmoji(groupId, url);
+        }
+
+        [HttpGet("DeleteEmoji")]
+        public void DeleteEmoji(string groupId, string url)
+        {
+            Domains.User.Current.DeleteEmoji(groupId, url);
+        }
     }
 }
