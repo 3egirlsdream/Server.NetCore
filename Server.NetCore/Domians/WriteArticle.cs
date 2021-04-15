@@ -22,7 +22,7 @@ namespace DotNetCoreServer.Domians
                 try
                 {
                     ARTICLE atc = new ARTICLE();
-                    atc.ID = Guid.NewGuid().ToString().ToUpper();
+                    atc.ID = string.Join("", Guid.NewGuid().ToString().ToUpper().Where(c => char.IsDigit(c)));
                     atc.USER_CREATED = user;
                     atc.DATETIME_CREATED = DateTime.Now;
                     atc.ARTICLE_CODE = atc.ID;
@@ -94,6 +94,7 @@ namespace DotNetCoreServer.Domians
         {
             using (var db = SugarContext.GetInstance())
             {
+                int total = 0;
                 var result = db.Queryable<ARTICLE, ARTICLE, ARTICLE>((a, a2, a3) => new
                 (
                     JoinType.Left, a.LAST_ESSAY == a2.ID,
@@ -106,7 +107,7 @@ namespace DotNetCoreServer.Domians
                         a.IMG_CODE,
                         a.ID,
                         DATETIME_CREATED = a.DATETIME_CREATED.ToString("yyyy-MM-dd"),
-                        //a.CONTENT,
+                        CONTENT = a.CONTENT,
                         a.ARTICLE_NAME,
                         a.ARTICLE_CODE,
                         a.ARTICLE_CATEGORY,
@@ -114,8 +115,12 @@ namespace DotNetCoreServer.Domians
                         LAST_ESSAY_NAME = a2.ARTICLE_NAME,
                         a.NEXT_ESSAY,
                         NEXT_ESSAY_NAME = a3.ARTICLE_NAME
-                    }).ToPageList(startIndex, length);
-                return result;
+                    }).ToPageList(startIndex, length, ref total);
+                return new
+                {
+                    totalCount = total,
+                    data = result
+                };
 
             }
         }
@@ -124,8 +129,13 @@ namespace DotNetCoreServer.Domians
         {
             using(var db = SugarContext.GetInstance())
             {
-                var res = db.Queryable<ARTICLE_CATEGORY>().ToList();
-                return res;
+                var res = db.Queryable<ARTICLE>().Where(x=> !string.IsNullOrEmpty(x.ARTICLE_CATEGORY)).Select(c => c.ARTICLE_CATEGORY).ToList() ;
+                var ls = new List<string>();
+                res.ForEach(c =>
+                {
+                    c.Split(';').ToList().ForEach(x => ls.Add(x));
+                });
+                return ls.Distinct().ToList();
             }
         }
 
@@ -135,9 +145,9 @@ namespace DotNetCoreServer.Domians
             {
                 var result = db.Queryable<ARTICLE, ARTICLE, ARTICLE>((a, a2, a3) => new
                 (
-                    JoinType.Left, a.LAST_ESSAY == a2.ID,
-                    JoinType.Left, a.NEXT_ESSAY == a3.ID
-                )).Where((a, a2, a3) => a.ID == id).Select((a, a2, a3)=>new
+                    JoinType.Left, a.LAST_ESSAY == a2.ID && a.STATE == a2.STATE,
+                    JoinType.Left, a.NEXT_ESSAY == a3.ID && a.STATE == a3.STATE
+                )).Where((a, a2, a3) => a.ID == id && a.STATE == "A").Select((a, a2, a3)=>new
                 {
                     a.IMG_CODE,
                     a.ID,
@@ -146,9 +156,9 @@ namespace DotNetCoreServer.Domians
                     a.ARTICLE_NAME,
                     a.ARTICLE_CODE,
                     a.ARTICLE_CATEGORY,
-                    a.LAST_ESSAY,
+                    LAST_ESSAY = a2.ID,
                     LAST_ESSAY_NAME = a2.ARTICLE_NAME,
-                    a.NEXT_ESSAY,
+                    NEXT_ESSAY = a3.ID,
                     NEXT_ESSAY_NAME = a3.ARTICLE_NAME
                 }).First();
                 return result;
