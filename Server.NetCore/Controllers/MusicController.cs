@@ -18,10 +18,7 @@ namespace DotNetCoreServer.Controllers
     public class MusicController : Controller
     {
         // GET: MusicController
-        public ActionResult Index()
-        {
-            return View();
-        }
+        
 
         [HttpGet("GetAllMusic/name={name}")]
         public object GetMusicName(string name)
@@ -39,7 +36,7 @@ namespace DotNetCoreServer.Controllers
             }
             else
             {
-                return dic.Where(x => !x.Contains(".mp3")).ToList();
+                return dic.Where(x=>!x.Contains(".mp3")).ToList();
             }
         }
 
@@ -96,7 +93,7 @@ namespace DotNetCoreServer.Controllers
             var db = SugarContext.GetInstance();
             var ilike = JsonConvert.DeserializeObject<I_LIKE>(Convert.ToString(obj));
             var isexist = db.Queryable<I_LIKE>().Where(x => x.MUSIC_NAME == ilike.MUSIC_NAME).ToList();
-            if (isexist == null || isexist.Count == 0)
+            if(isexist == null || isexist.Count == 0)
             {
                 var info = new I_LIKE
                 {
@@ -111,7 +108,7 @@ namespace DotNetCoreServer.Controllers
             }
             else
             {
-                db.Deleteable<I_LIKE>().Where(x => x.ID == isexist[0].ID).ExecuteCommand();
+                db.Deleteable<I_LIKE>().Where(x=>x.ID == isexist[0].ID).ExecuteCommand();
             }
         }
     }
