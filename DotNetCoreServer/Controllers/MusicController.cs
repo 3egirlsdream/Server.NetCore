@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using DotNetCoreServer.Domians;
 using DotNetCoreServer.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -38,13 +39,13 @@ namespace DotNetCoreServer.Controllers
             }
             else
             {
-                return dic;
+                return dic.Where(x=>!x.Contains(".mp3")).ToList();
             }
         }
 
 
-        [HttpGet("GetMusics/like={like}", Name = "")]
-        public object GetMusics(string like)
+        [HttpGet("GetMusics/like={like}&start={start}&length={length}", Name = "")]
+        public object GetMusics(string like, int start, int length)
         {
             var db = SugarContext.GetInstance();
 
@@ -52,28 +53,37 @@ namespace DotNetCoreServer.Controllers
             var map = new Dictionary<string, string>();
             ilike.ForEach(x => map[x.MUSIC_NAME] = x.MUSIC_NAME);
             var musicer = new List<string>();
+            //获取所有音乐名
             var dic = Directory.GetFiles("../mp3");
             var musics = new List<dynamic>();
-            foreach(var ds in dic)
+            musics = Music.AddLikeIcon(dic, map, like);
+
+            if (length == 0) return musics;
+            else return new
             {
-                var info = FileVersionInfo.GetVersionInfo(ds);
-                var lastof = info.FileName.LastIndexOf("\\") + 1;
-                var musicname = info.FileName.Substring(lastof, info.FileName.Length - lastof);
-                var color = map.ContainsKey(musicname) ? "red" : "black";
-                dynamic dy = new
-                {
-                    name = musicname,
-                    color = color
-                };
-                if(like == "Y" && color == "red")
-                    musics.Add(dy);
-                else if(like != "Y")
-                {
-                    musics.Add(dy);
-                }
-            }
+                data = musics.Skip(start).Take(length).ToList(),
+                total = musics.Count
+            };
+        }
 
+        /// <summary>
+        /// 搜索
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("Search/value={value}", Name = "搜索")]
+        public object Search(string value)
+        {
+            var db = SugarContext.GetInstance();
 
+            var ilike = db.Queryable<I_LIKE>().ToList();
+            var map = new Dictionary<string, string>();
+            ilike.ForEach(x => map[x.MUSIC_NAME] = x.MUSIC_NAME);
+            var musicer = new List<string>();
+            //获取所有音乐名
+            var dic = Directory.GetFiles("../mp3");
+            var musics = new List<dynamic>();
+            musics = Music.AddLikeIcon(dic, map, "N");
+            musics = musics.Where(x => x.name.Contains(value)).ToList();
             return musics;
         }
 
