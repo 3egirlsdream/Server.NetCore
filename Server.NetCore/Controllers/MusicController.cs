@@ -18,10 +18,7 @@ namespace DotNetCoreServer.Controllers
     public class MusicController : Controller
     {
         // GET: MusicController
-        public ActionResult Index()
-        {
-            return View();
-        }
+        
 
         [HttpGet("GetAllMusic/name={name}")]
         public object GetMusicName(string name)

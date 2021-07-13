@@ -49,6 +49,12 @@ namespace DotNetCoreServer.Controllers
             return res;
         }
 
+        [HttpGet("GetUserInfo")]
+        public object GetUserInfo(string username)
+        {
+            return Domains.User.Current.GetUserInfo(username);
+        }
+
 
         [HttpGet("test", Name = "test")]
         public IActionResult Test(string user, string pwd)
@@ -110,6 +116,57 @@ namespace DotNetCoreServer.Controllers
         {
             var word = value.ToString();
             return ImageReadDomain.GetWord(word);
+        }
+
+
+        [HttpGet("GetChatRecord")]
+        public object GetChatRecord(string GroupId)
+        {
+            return Domains.User.Current.GetChatRecord(GroupId);
+        }
+
+
+        [HttpPost("UpChatRecord")]
+        public void UpChatRecord(JToken jt)
+        {
+            string GroupId = jt["GroupId"]?.ToString();
+            string ChatRecord = jt["ChatRecord"]?.ToString();
+            Domains.User.Current.UpChatRecord(GroupId, ChatRecord);
+        }
+
+
+        [HttpGet("GetChatList")]
+        public object GetChatList(string username)
+        {
+            return Domains.User.Current.GetChatList(username);
+        }
+
+
+
+        [HttpGet("UpdateList")]
+        public void UpdateList(string groupId, string groupName, string users)
+        {
+            Domains.User.Current.UpdateList(groupId, groupName, users);
+        }
+
+
+        [HttpGet("GetEmoji")]
+        public object GetEmoji(string groupId)
+        {
+            return Domains.User.Current.GetEmoji(groupId);
+        }
+
+
+        [HttpGet("AddEmoji")]
+        public void AddEmoji(string groupId, string url)
+        {
+            Domains.User.Current.AddEmoji(groupId, url);
+        }
+
+        [HttpGet("DeleteEmoji")]
+        public void DeleteEmoji(string groupId, string url)
+        {
+            Domains.User.Current.DeleteEmoji(groupId, url);
         }
     }
 }

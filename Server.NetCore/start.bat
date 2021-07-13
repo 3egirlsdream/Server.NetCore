@@ -1,0 +1,1 @@
+dotnet Server.NetCore.dll
