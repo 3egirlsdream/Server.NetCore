@@ -8,13 +8,11 @@ using Microsoft.AspNetCore.Mvc;
 using DotNetCoreServer.Domians;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using DotNetCoreServer.Common;
 
 namespace DotNetCoreServer.Controllers
 {
-    [Middleware("any", "文章类")]
-    [Route("api/article")]
-    [ApiController]
-    public class ArticleController : ControllerBase
+    public class ArticleController : BaseController
     {
         // GET api/values
         //[HttpGet]

@@ -7,13 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using DotNetCoreServer.Domians;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using DotNetCoreServer.Common;
 
 namespace DotNetCoreServer.Controllers
 {
-    [Middleware("any", "初始类")]
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ValuesController : ControllerBase
+    [WebApi("api/[controller]")]
+    public class ValuesController : BaseController
     {
         // GET api/values
         [HttpGet]

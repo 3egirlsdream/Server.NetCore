@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using DotNetCoreServer.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -14,8 +17,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using DotNetCoreServer.Common;
 //using Newtonsoft.Json.Serialization;
 //using Microsoft.OpenApi.Models;
 
@@ -55,9 +61,61 @@ namespace DotNetCoreServer
                 options.Filters.Add(typeof(WebApiResultMiddleware));
                 options.RespectBrowserAcceptHeader = true;
                 options.Filters.Add<CustomExceptionAttribute>();
+                //请求过滤，主要用来写日志
+                options.Filters.Add<QueryRequiredAttribute>();
+                //鉴权
+                options.Filters.Add<TokenFilterAttribute>();
             });
             services.AddMvc().AddNewtonsoftJson(options => { options.SerializerSettings.ContractResolver = new DefaultContractResolver(); });
 
+            //鉴权
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+                {
+                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+                    {
+                        ValidateActor = true,
+                        ValidIssuer = "Security:Tokens:Issuer",
+                        ValidateAudience = true,
+                        ValidAudience = "Security:Tokens:Audience",
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Security:Tokens:Key")),
+                        //ValidateLifetime = true,
+                        //ClockSkew = TimeSpan.FromSeconds(1)
+                    };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnChallenge = context =>
+                        {
+                            context.HandleResponse();
+                            var backload = JsonConvert.SerializeObject(new BaseResultModel(200, "Token已失效，请重新登录！"));
+                            context.Response.ContentType = "application/json";
+                            context.Response.StatusCode = 200;
+                            context.Response.WriteAsync(backload);
+                            return Task.FromResult(0);
+                        },
+                        OnMessageReceived = context =>
+                        {
+                            var token = context.Request.Headers["Authorization"];
+                            context.Token = token.FirstOrDefault();
+                            if (string.IsNullOrEmpty(context.Token))
+                            {
+                                return Task.CompletedTask;
+                            }
+                            var tokenHandler = new JwtSecurityTokenHandler();
+                            var jt = tokenHandler.ReadJwtToken(context.Token);
+                            var validTo = jt.ValidTo;
+                            if (validTo < DateTime.UtcNow)
+                            {
+                                var backload = JsonConvert.SerializeObject(new BaseResultModel(200, "Token已失效，请重新登录！"));
+                                context.Response.ContentType = "application/json";
+                                context.Response.StatusCode = 200;
+                                context.Response.WriteAsync(backload);
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
 
             services.AddSwaggerGen(options =>
             {

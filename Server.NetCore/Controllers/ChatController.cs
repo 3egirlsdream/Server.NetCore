@@ -1,4 +1,5 @@
 ﻿using DotNetCoreServer;
+using DotNetCoreServer.Common;
 using DotNetCoreServer.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -8,10 +9,7 @@ using System.Threading.Tasks;
 
 namespace Server.NetCore.Controllers
 {
-    [ApiController]
-    [Middleware("any", "聊天")]
-    [Route("api/[controller]/[action]")]
-    public class ChatController : ControllerBase
+    public class ChatController : BaseController
     {
 
         [HttpGet]

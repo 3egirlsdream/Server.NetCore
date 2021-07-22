@@ -4,23 +4,22 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using DotNetCoreServer.Common;
 using DotNetCoreServer.Domians;
 using DotNetCoreServer.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Server.NetCore.Models;
 
 namespace DotNetCoreServer.Controllers
 {
-    [Middleware("any", "音乐类")]
-    [Route("api/music")]
-    [ApiController]
-    public class MusicController : Controller
+    public class MusicController : BaseController
     {
         // GET: MusicController
         
 
-        [HttpGet("GetAllMusic/name={name}")]
+        [HttpGet]
         public object GetMusicName(string name)
         {
             var dic = Directory.GetFiles("../mp3");
@@ -41,33 +40,49 @@ namespace DotNetCoreServer.Controllers
         }
 
 
-        [HttpGet("GetMusics/like={like}&start={start}&length={length}", Name = "")]
+        [HttpGet]
         public object GetMusics(string like, int start, int length)
         {
-            var db = SugarContext.GetInstance();
-
-            var ilike = db.Queryable<I_LIKE>().ToList();
-            var map = new Dictionary<string, string>();
-            ilike.ForEach(x => map[x.MUSIC_NAME] = x.MUSIC_NAME);
-            var musicer = new List<string>();
-            //获取所有音乐名
-            var dic = Directory.GetFiles("../mp3");
-            var musics = new List<dynamic>();
-            musics = Music.AddLikeIcon(dic, map, like);
-
-            if (length == 0) return musics;
-            else return new
+            using (var db = SugarContext.GetInstance())
             {
-                data = musics.Skip(start).Take(length).ToList(),
-                total = musics.Count
-            };
+                int total = 0;
+                var musics = db.Queryable<MUSICS>().ToPageList(start, length, ref total);
+                var ilike = db.Queryable<I_LIKE>().ToList();
+                var map = new Dictionary<string, string>();
+                ilike.ForEach(x => map[x.MUSIC_NAME] = x.MUSIC_NAME);
+                foreach(var item in musics)
+                {
+                    item.MUSIC_NAME = item.MUSIC_NAME.Trim();
+                    item.COLOR = map.ContainsKey(item.MUSIC_NAME) ? "red" : "black";
+                }
+
+                if(like == "Y")
+                {
+                    musics = musics.Where(c => c.COLOR == "red").ToList();
+                }
+
+                if (length == 0) return musics;
+                else return new
+                {
+                    data = musics,
+                    total
+                };
+            }
+
+
+            ////获取所有音乐名
+            //var dic = Directory.GetFiles("../mp3");
+            //var musics = new List<dynamic>();
+            //musics = Music.AddLikeIcon(dic, map, like);
+
+
         }
 
         /// <summary>
         /// 搜索
         /// </summary>
         /// <returns></returns>
-        [HttpGet("Search/value={value}", Name = "搜索")]
+        [HttpGet]
         public object Search(string value)
         {
             var db = SugarContext.GetInstance();
@@ -87,7 +102,7 @@ namespace DotNetCoreServer.Controllers
 
 
 
-        [HttpPost("AddILike")]
+        [HttpPost]
         public void AddILike([FromBody] Object obj)
         {
             var db = SugarContext.GetInstance();
@@ -101,7 +116,7 @@ namespace DotNetCoreServer.Controllers
                     USER_CREATED = ilike.USER_CODE,
                     USER_CODE = ilike.USER_CODE,
                     DATETIME_CREATED = DateTime.Now,
-                    MUSIC_NAME = ilike.MUSIC_NAME,
+                    MUSIC_NAME = ilike.MUSIC_NAME.Trim(),
                     STATE = "A"
                 };
                 db.Insertable(info).ExecuteCommand();
