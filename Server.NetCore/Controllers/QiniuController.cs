@@ -45,7 +45,8 @@ namespace DotNetCoreServer.Controllers
                     ds.DATETIME_CREATED = DateTime.Now;
                     ds.USER_CREATED = "SYS";
                     ds.STATE = "A";
-
+                    ds.MUSIC_NAME = ds.MUSIC_NAME.Trim();
+                    ds.ARTISTS = ds.ARTISTS.Trim();
                     var msg = db.Queryable<MUSICS>().Where(c => c.MUSIC_NAME == ds.MUSIC_NAME).ToList().FirstOrDefault();
                     if(msg == null)
                     {
@@ -53,6 +54,8 @@ namespace DotNetCoreServer.Controllers
                     }
                     else
                     {
+                        ds.DATETIME_MODIFIED = DateTime.Now;
+                        ds.USER_MODIFIED = "SYS";
                         db.Updateable(ds).ExecuteCommand();
                     }
                 }
