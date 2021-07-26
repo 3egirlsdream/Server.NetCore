@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Server.NetCore.Models;
+using SqlSugar;
 
 namespace DotNetCoreServer.Controllers
 {
@@ -128,5 +129,80 @@ namespace DotNetCoreServer.Controllers
                 db.Deleteable<I_LIKE>().Where(x=>x.ID == isexist[0].ID).ExecuteCommand();
             }
         }
+
+        [HttpGet]
+        public object GetRank(int start, int length, string user)
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                int total = 0;
+                var musics = db.Queryable<MUSICS, PLAY_COUNT>((m, p)=> new
+                (
+                    JoinType.Left, m.ID == p.MUSIC_ID
+                )).OrderBy((m, p) => p.QTY, OrderByType.Desc).Select((m, p)=> new MUSICS {
+                    QTY = p.QTY,
+                    MUSIC_NAME = m.MUSIC_NAME,
+                    CDN = m.CDN,
+                    ARTISTS = m.ARTISTS,
+                    QUALITY = m.QUALITY
+                }).ToPageList(start, length, ref total);
+
+
+                var ilike = db.Queryable<I_LIKE>().WhereIF(!string.IsNullOrEmpty(user), c => c.USER_CODE == user).ToList();
+                var map = new Dictionary<string, string>();
+                ilike.ForEach(x => map[x.MUSIC_NAME] = x.MUSIC_NAME);
+                foreach (var item in musics)
+                {
+                    item.MUSIC_NAME = item.MUSIC_NAME.Trim();
+                    item.COLOR = map.ContainsKey(item.MUSIC_NAME) ? "red" : "black";
+                }
+
+
+                if (length == 0) return musics;
+                else return new
+                {
+                    data = musics,
+                    total
+                };
+            }
+        }
+
+
+        [HttpGet]
+        public void CountPlus(string cdn)
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                var id = db.Queryable<MUSICS>().Where(c => c.CDN == cdn).ToList().FirstOrDefault()?.ID;
+                if (string.IsNullOrEmpty(id))
+                {
+                    throw new Exception("歌名不存在");
+                }
+
+                var music = db.Queryable<PLAY_COUNT>().Where(c => c.MUSIC_ID == id).ToList().FirstOrDefault();
+                if (music is null)
+                {
+                    music = new PLAY_COUNT
+                    {
+                        ID = Guid.NewGuid().ToString("N").ToUpper(),
+                        USER_CREATED = "SYS",
+                        DATETIME_CREATED = DateTime.Now,
+                        STATE = "A",
+                        MUSIC_ID = id,
+                        QTY = 1
+                    };
+                    db.Insertable(music).ExecuteCommand();
+                }
+                else
+                {
+                    music.DATETIME_MODIFIED = DateTime.Now;
+                    music.USER_MODIFIED = "SYS";
+                    music.QTY++;
+                    db.Updateable(music).ExecuteCommand();
+                }
+
+            }
+        }
+
     }
 }

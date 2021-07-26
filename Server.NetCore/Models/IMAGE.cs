@@ -7,7 +7,6 @@ namespace SugarModel
     {
         public IMAGE()
         {
-            //this.ID = GenerateNewID();
             this.STATE = "A";
         }
         public IMAGE(string id)

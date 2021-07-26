@@ -10,7 +10,6 @@ namespace DotNetCoreServer.Models
     {
         public GROUPS()
         {
-            //this.ID = GenerateNewID();
             this.STATE = "A";
         }
         public GROUPS(string id)

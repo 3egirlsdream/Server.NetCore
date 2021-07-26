@@ -10,7 +10,6 @@ namespace DotNetCoreServer.Models
     {
         public SYS_USER()
         {
-            //this.ID = GenerateNewID();
             this.STATE = "A";
         }
         public SYS_USER(string id)

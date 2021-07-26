@@ -10,7 +10,6 @@ namespace DotNetCoreServer.Models
     {
         public EMOJI()
         {
-            //this.ID = GenerateNewID();
             this.STATE = "A";
         }
         public EMOJI(string id)

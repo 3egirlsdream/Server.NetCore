@@ -10,7 +10,6 @@ namespace Server.NetCore.Models
     {
 		public MUSICS()
 		{
-			//this.ID = GenerateNewID();
 			this.STATE = "A";
 		}
 		public MUSICS(string id)
@@ -31,5 +30,7 @@ namespace Server.NetCore.Models
         public string QUALITY { get; set; }
 		[SugarColumn(IsIgnore =true)]
         public string COLOR { get; set; }
-    }
+		[SugarColumn(IsIgnore = true)]
+		public decimal	QTY { get; set; }
+	}
 }

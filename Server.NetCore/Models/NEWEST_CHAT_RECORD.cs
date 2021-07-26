@@ -10,7 +10,6 @@ namespace DotNetCoreServer.Models
     {
         public NEWEST_CHAT_RECORD()
         {
-            //this.ID = GenerateNewID();
             this.STATE = "A";
         }
         public NEWEST_CHAT_RECORD(string id)
