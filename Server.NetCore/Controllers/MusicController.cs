@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using DotNetCoreServer.Common;
 using DotNetCoreServer.Domians;
@@ -18,7 +19,7 @@ namespace DotNetCoreServer.Controllers
     public class MusicController : BaseController
     {
         // GET: MusicController
-        
+
 
         [HttpGet]
         public object GetMusicName(string name)
@@ -36,7 +37,7 @@ namespace DotNetCoreServer.Controllers
             }
             else
             {
-                return dic.Where(x=>!x.Contains(".mp3")).ToList();
+                return dic.Where(x => !x.Contains(".mp3")).ToList();
             }
         }
 
@@ -51,13 +52,13 @@ namespace DotNetCoreServer.Controllers
                 var ilike = db.Queryable<I_LIKE>().WhereIF(!string.IsNullOrEmpty(user), c => c.USER_CODE == user).ToList();
                 var map = new Dictionary<string, string>();
                 ilike.ForEach(x => map[x.MUSIC_NAME] = x.MUSIC_NAME);
-                foreach(var item in musics)
+                foreach (var item in musics)
                 {
                     item.MUSIC_NAME = item.MUSIC_NAME.Trim();
                     item.COLOR = map.ContainsKey(item.MUSIC_NAME) ? "red" : "black";
                 }
 
-                if(like == "Y")
+                if (like == "Y")
                 {
                     musics = musics.Where(c => c.COLOR == "red").ToList();
                 }
@@ -88,8 +89,8 @@ namespace DotNetCoreServer.Controllers
         {
             using (var db = SugarContext.GetInstance())
             {
-                var musics = db.Queryable<MUSICS>().Where(c=>c.MUSIC_NAME.Contains(value) || c.ARTISTS.Contains(value)).ToList();
-                var ilike = db.Queryable<I_LIKE>().WhereIF(!string.IsNullOrEmpty(user), c=>c.USER_CODE == user).ToList();
+                var musics = db.Queryable<MUSICS>().Where(c => c.MUSIC_NAME.Contains(value) || c.ARTISTS.Contains(value)).ToList();
+                var ilike = db.Queryable<I_LIKE>().WhereIF(!string.IsNullOrEmpty(user), c => c.USER_CODE == user).ToList();
                 var map = new Dictionary<string, string>();
                 ilike.ForEach(x => map[x.MUSIC_NAME] = x.MUSIC_NAME);
                 foreach (var item in musics)
@@ -111,7 +112,7 @@ namespace DotNetCoreServer.Controllers
             var db = SugarContext.GetInstance();
             var ilike = JsonConvert.DeserializeObject<I_LIKE>(Convert.ToString(obj));
             var isexist = db.Queryable<I_LIKE>().Where(x => x.MUSIC_NAME == ilike.MUSIC_NAME && x.USER_CREATED == ilike.USER_CODE).ToList();
-            if(isexist == null || isexist.Count == 0)
+            if (isexist == null || isexist.Count == 0)
             {
                 var info = new I_LIKE
                 {
@@ -126,7 +127,7 @@ namespace DotNetCoreServer.Controllers
             }
             else
             {
-                db.Deleteable<I_LIKE>().Where(x=>x.ID == isexist[0].ID).ExecuteCommand();
+                db.Deleteable<I_LIKE>().Where(x => x.ID == isexist[0].ID).ExecuteCommand();
             }
         }
 
@@ -136,10 +137,11 @@ namespace DotNetCoreServer.Controllers
             using (var db = SugarContext.GetInstance())
             {
                 int total = 0;
-                var musics = db.Queryable<MUSICS, PLAY_COUNT>((m, p)=> new
+                var musics = db.Queryable<MUSICS, PLAY_COUNT>((m, p) => new
                 (
                     JoinType.Left, m.ID == p.MUSIC_ID
-                )).OrderBy((m, p) => p.QTY, OrderByType.Desc).Select((m, p)=> new MUSICS {
+                )).OrderBy((m, p) => p.QTY, OrderByType.Desc).Select((m, p) => new MUSICS
+                {
                     QTY = p.QTY,
                     MUSIC_NAME = m.MUSIC_NAME,
                     CDN = m.CDN,
@@ -204,5 +206,90 @@ namespace DotNetCoreServer.Controllers
             }
         }
 
+
+        [HttpGet]
+        public void AddMusic()
+        {
+
+            using (var fs = new FileStream(@"D:\BaiduNetdiskDownload\music - 副本.json", FileMode.Open, FileAccess.Read))
+            {
+                StreamReader sr = new StreamReader(fs, Encoding.Default);
+                var list = new List<MusicInfo>();
+                var dic = new List<string>();
+
+                while (sr.Peek() != -1)
+                {
+                    var s = sr.ReadLine();
+                    var item = JsonConvert.DeserializeObject<MusicInfo>(s);
+                    list.Add(item);
+                }
+
+                using (var db = SugarContext.GetInstance())
+                {
+                    
+                    var _ = db.Queryable<MUSIC_INFO>().ToList();
+                    _.ForEach(c =>
+                    {
+                        dic.Add(c.SONG_NAME + c.SINGER_NAME);
+                    });
+                    var infos = new List<MUSIC_INFO>();
+                    foreach (var item in list)
+                    {
+                        var singer = string.Join("&", item.singer_name);
+                        if (!dic.Contains(item.song_name + singer))
+                        {
+                            dic.Add(item.song_name + singer);
+                            var __ = new MUSIC_INFO
+                            {
+                                ID = Guid.NewGuid().ToString("N").ToUpper(),
+                                DATETIME_CREATED = DateTime.Now,
+                                USER_CREATED = "SYS",
+                                STATE = "A",
+                                SINGER_NAME = string.Join("&", item.singer_name),
+                                SONG_NAME = item.song_name,
+                                SUBTITLE = item.subtitle,
+                                ALBUM_NAME = item.album_name,
+                                SINGER_ID = string.Join("&", item.singer_id),
+                                SINGER_MID = string.Join("&", item.singer_mid),
+                                SONG_TIME_PUBLIC = item.song_time_public,
+                                SONG_TYPE = item.song_type.ToString(),
+                                LANGUAGE = item.language.ToString(),
+                                SONG_ID = item.song_id.ToString(),
+                                SONG_MID = item.song_mid,
+                                SONG_URL = item.song_url,
+                                LYRIC = item.lyric
+                            };
+                            infos.Add(__);
+                        }
+                    }
+                    for (int i = 0; i < infos.Count; i++)
+                    {
+                        try
+                        {
+                            db.Insertable(infos[i]).ExecuteCommand();
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+                }
+                sr.Close();
+                fs.Close();
+            }
+        }
+        
+        [HttpGet]
+        public MUSIC_INFO GetMusicInfo(string song, string singer)
+        {
+            using(var db = SugarContext.GetInstance())
+            {
+                var singers = singer.Split(new string[] { "&", "_"}, StringSplitOptions.RemoveEmptyEntries);
+                var singersTrim = singers.Select(c => c.Trim()).ToList();
+                singer = string.Join("&", singersTrim);
+                var result = db.Queryable<MUSIC_INFO>().Where(c => c.SONG_NAME == song && c.SINGER_NAME == singer).OrderBy(c=>c.LYRIC, OrderByType.Desc).ToList().FirstOrDefault();
+                return result;
+            }
+        }
     }
 }
