@@ -1,11 +1,12 @@
-﻿using System;
+﻿using SqlSugar;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Server.NetCore.Models
 {
-    public class MUSIC_INFO
+    public partial class MUSIC_INFO
     {
 		public string ID { get; set; }
 		public DateTime DATETIME_CREATED { get; set; }
@@ -26,5 +27,18 @@ namespace Server.NetCore.Models
 		public string SONG_MID { get; set; }
 		public string SONG_URL { get; set; }
 		public string LYRIC { get; set; }
-	}
+       
+    }
+
+	public	partial class MUSIC_INFO
+    {
+		[SugarColumn(IsIgnore = true)]
+		public decimal ALBUM_COUNT { get; set; }
+		[SugarColumn(IsIgnore = true)]
+		public decimal COUNT { get; set; }
+		[SugarColumn(IsIgnore = true)]
+		public string NAME { get; set; }
+		[SugarColumn(IsIgnore = true)]
+		public List<MUSIC_INFO> ALBUMS { get; set; }
+    }
 }

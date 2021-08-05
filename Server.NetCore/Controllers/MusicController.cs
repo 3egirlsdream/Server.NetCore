@@ -85,24 +85,88 @@ namespace DotNetCoreServer.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public object Search(string value, string user)
+        public object Search(string key, string user)
         {
-            using (var db = SugarContext.GetInstance())
+            try
             {
-                var musics = db.Queryable<MUSICS>().Where(c => c.MUSIC_NAME.Contains(value) || c.ARTISTS.Contains(value)).ToList();
-                var ilike = db.Queryable<I_LIKE>().WhereIF(!string.IsNullOrEmpty(user), c => c.USER_CODE == user).ToList();
-                var map = new Dictionary<string, string>();
-                ilike.ForEach(x => map[x.MUSIC_NAME] = x.MUSIC_NAME);
-                foreach (var item in musics)
+                using (var db = SugarContext.GetInstance())
                 {
-                    item.MUSIC_NAME = item.MUSIC_NAME.Trim();
-                    item.COLOR = map.ContainsKey(item.MUSIC_NAME) ? "red" : "black";
+                    var musics = db.Queryable<MUSICS>().Where(c => c.MUSIC_NAME.Contains(key) || c.ARTISTS.Contains(key)).ToList();
+                    var ilike = db.Queryable<I_LIKE>().WhereIF(!string.IsNullOrEmpty(user), c => c.USER_CODE == user).ToList();
+                    var map = new Dictionary<string, string>();
+                    ilike.ForEach(x => map[x.MUSIC_NAME] = x.MUSIC_NAME);
+                    foreach (var item in musics)
+                    {
+                        item.MUSIC_NAME = item.MUSIC_NAME?.Trim();
+                        item.COLOR = map.ContainsKey(item.MUSIC_NAME) ? "red" : "black";
+                    }
+                    return musics;
                 }
-                return musics;
+            }catch(Exception ex)
+            {
+                throw ex;
             }
-
         }
 
+
+        /// <summary>
+        /// 搜索
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public object SearchArtist(string artist)
+        {
+            try
+            {
+                using (var db = SugarContext.GetInstance())
+                {
+                    var music = db.Queryable<MUSICS>().Where(c => c.ARTISTS.Contains(artist)).ToList();
+                    var album = db.Queryable<MUSIC_INFO>().Where(c => c.SINGER_NAME == artist && !string.IsNullOrEmpty(c.ALBUM_NAME) && c.ALBUM_NAME != "空").ToList().Select(c => new MUSIC_INFO
+                    {
+                        SINGER_NAME = c.SINGER_NAME.Trim(),
+                        ALBUM_NAME = c.ALBUM_NAME.Trim()
+                    }).ToList();
+
+                    var musics = music.GroupBy(c => c.ARTISTS.Trim()).Select(c => new MUSICS
+                    {
+                        ARTISTS = c.Key.Trim(),
+                        QTY = c.Count()
+                    }).ToList();
+
+                    var albums = album.GroupBy(c => c.SINGER_NAME).Select(c => new MUSIC_INFO
+                    {
+                        SINGER_NAME = c.Key,
+                        ALBUM_COUNT = c.Count(),
+                        ALBUMS = c.GroupBy(x => x.ALBUM_NAME).Select(x => new MUSIC_INFO
+                        {
+                            NAME = x.Key,
+                            COUNT = x.Count()
+                        }).ToList()
+                    }).ToList();
+
+                    var list = new List<dynamic>();
+                    foreach (var m in musics)
+                    {
+                        var a = albums.FirstOrDefault(c => c.SINGER_NAME == m.ARTISTS);
+
+                        dynamic _ = new
+                        {
+                            ARTISTS = m.ARTISTS,
+                            COUNT = m.QTY,
+                            ALBUM_COUNT = a == null ? 0 : a.ALBUM_COUNT,
+                            ALBUM = a
+                        };
+                        list.Add(_);
+                    }
+
+                    return list.OrderByDescending(c => c.COUNT).Take(1).ToList();
+                }
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
 
 
 
@@ -132,7 +196,7 @@ namespace DotNetCoreServer.Controllers
         }
 
         [HttpGet]
-        public object GetRank(int start, int length, string user)
+        public object GetRank(int start, int length, string user, string singerName)
         {
             using (var db = SugarContext.GetInstance())
             {
@@ -140,7 +204,8 @@ namespace DotNetCoreServer.Controllers
                 var musics = db.Queryable<MUSICS, PLAY_COUNT>((m, p) => new
                 (
                     JoinType.Left, m.ID == p.MUSIC_ID
-                )).OrderBy((m, p) => p.QTY, OrderByType.Desc).Select((m, p) => new MUSICS
+                )).WhereIF(!string.IsNullOrEmpty(singerName), (m, p)=> m.ARTISTS == singerName)
+                .OrderBy((m, p) => p.QTY, OrderByType.Desc).Select((m, p) => new MUSICS
                 {
                     QTY = p.QTY,
                     MUSIC_NAME = m.MUSIC_NAME,
@@ -284,10 +349,14 @@ namespace DotNetCoreServer.Controllers
         {
             using(var db = SugarContext.GetInstance())
             {
-                var singers = singer.Split(new string[] { "&", "_"}, StringSplitOptions.RemoveEmptyEntries);
+                var singers = singer.Split(new string[] { "&", "_", ".", ","}, StringSplitOptions.RemoveEmptyEntries);
                 var singersTrim = singers.Select(c => c.Trim()).ToList();
                 singer = string.Join("&", singersTrim);
-                var result = db.Queryable<MUSIC_INFO>().Where(c => c.SONG_NAME == song && c.SINGER_NAME == singer).OrderBy(c=>c.LYRIC, OrderByType.Desc).ToList().FirstOrDefault();
+                var result = db.Queryable<MUSIC_INFO>().Where(c => c.SONG_NAME == song && c.SINGER_NAME == singer).ToList().OrderByDescending(c => c.LYRIC).FirstOrDefault();
+                if (result != null)
+                {
+                    result.LYRIC = result.LYRIC.Replace("\\n", "\n");
+                }
                 return result;
             }
         }
