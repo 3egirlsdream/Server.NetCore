@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DotNetCoreServer.Models
 {
-    public class WebApiResultMiddleware : ActionFilterAttribute
+    public class WebApiResultMiddleware : ResultFilterAttribute
     {
        /// <summary>
        /// 统一处理返回信息
@@ -41,6 +41,7 @@ namespace DotNetCoreServer.Models
                 context.Result = new ObjectResult(new SuccessResultModel((context.Result as StatusCodeResult).StatusCode, null, true ));
             }
         }
+
     }
 
     public class SuccessResultModel

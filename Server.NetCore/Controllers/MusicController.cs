@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Server.NetCore.Models;
 using SqlSugar;
+using System.Threading;
+using Newtonsoft.Json.Linq;
 
 namespace DotNetCoreServer.Controllers
 {
@@ -360,5 +362,126 @@ namespace DotNetCoreServer.Controllers
                 return result;
             }
         }
+
+
+        [HttpGet]
+        public object GetSongList(string user, string listId, string listName)
+        {
+            using(var db = SugarContext.GetInstance())
+            {
+                var result = db.Queryable<SONG_LIST, SONG_LIST_DETAIL, MUSICS>((l, d, m) => new
+                (
+                    JoinType.Left, l.ID == d.LIST_ID,
+                    JoinType.Left, d.MUSIC_ID == m.ID
+                )).WhereIF(!string.IsNullOrEmpty(listId), (l, d, m) => l.ID == listId)
+                .WhereIF(!string.IsNullOrEmpty(listName), (l, d, m) => l.LIST_NAME == listName)
+                .Where((l, d, m) => l.USER_CREATED == user)
+                .Select((l, d, m) => new
+                {
+                    l.LIST_NAME,
+                    LIST_ID = l.ID,
+                    l.IMG,
+                    m.ID,
+                    m.MUSIC_NAME,
+                    m.CDN,
+                    m.ARTISTS,
+                    m.QUALITY
+                }).ToList().GroupBy(c => new { c.LIST_NAME, c.LIST_ID, c.IMG})
+                .Select(c => new
+                {
+                    c.Key.LIST_ID,
+                    c.Key.LIST_NAME,
+                    c.Key.IMG,
+                    DETAILS = c.Select(x => new { x.ID, x.MUSIC_NAME, x.ARTISTS, x.CDN, x.QUALITY }).Where(x=> !string.IsNullOrEmpty(x.MUSIC_NAME)).ToList()
+                }).ToList();
+                return result;
+            }
+        }
+
+        [HttpGet]
+        public void CreateSongList(string user, string name, string img)
+        {
+            if(string.IsNullOrEmpty(user) || string.IsNullOrEmpty(name))
+            {
+                throw new Exception("用户名和歌单名不能为空！");
+            }
+
+            using(var db = SugarContext.GetInstance())
+            {
+                var list = db.Queryable<SONG_LIST>().Where(c => c.USER_CREATED == user && c.LIST_NAME == name).ToList().FirstOrDefault();
+                if(list is null)
+                {
+                    list = new SONG_LIST
+                    {
+                        ID = Guid.NewGuid().ToString("N").ToUpper(),
+                        DATETIME_CREATED = DateTime.Now,
+                        USER_CREATED = user,
+                        STATE = "A",
+                        LIST_NAME = name,
+                        IMG = img
+                    };
+                    db.Insertable(list).ExecuteCommand();
+                }
+                else
+                {
+                    list.LIST_NAME = name;
+                    list.IMG = img;
+                    list.USER_MODIFIED = user;
+                    list.DATETIME_MODIFIED = DateTime.Now;
+                    db.Updateable(list).ExecuteCommand();
+                }
+            }
+        }
+
+
+        [HttpGet]
+        public void DeleteSongList(string listId)
+        {
+            using(var db = SugarContext.GetInstance())
+            {
+                db.Deleteable<SONG_LIST_DETAIL>().Where(c => c.LIST_ID == listId).ExecuteCommand();
+                db.Deleteable<SONG_LIST>().Where(c => c.ID == listId).ExecuteCommand();
+            }
+        }
+
+        [HttpGet]
+        public void AddSongToList(string user, string listId, string songId)
+        {
+            using(var db = SugarContext.GetInstance())
+            {
+                var detail = db.Queryable<SONG_LIST_DETAIL>().Where(c => c.LIST_ID == listId && c.MUSIC_ID == songId).ToList().FirstOrDefault();
+                if (detail is null)
+                {
+                    detail = new SONG_LIST_DETAIL
+                    {
+                        ID = Guid.NewGuid().ToString("N").ToUpper(),
+                        DATETIME_CREATED = DateTime.Now,
+                        USER_CREATED = user,
+                        STATE = "A",
+                        LIST_ID = listId,
+                        MUSIC_ID = songId
+                    };
+                    db.Insertable(detail).ExecuteCommand();
+                }
+                else
+                {
+                    detail.USER_MODIFIED = user;
+                    detail.DATETIME_MODIFIED = DateTime.Now;
+                    detail.STATE = "A";
+                    db.Updateable(detail).ExecuteCommand();
+                }
+            }
+        }
+
+        [HttpGet]
+        public void DeleteSongFromList(string user, string listId, string songId)
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                db.Deleteable<SONG_LIST_DETAIL>().Where(c => c.LIST_ID == listId && c.USER_CREATED == user && c.MUSIC_ID == songId).ExecuteCommand();
+            }
+        }
+
+
     }
 }
