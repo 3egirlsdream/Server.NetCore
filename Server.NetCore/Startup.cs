@@ -29,7 +29,7 @@ using DotNetCoreServer.Common;
 namespace DotNetCoreServer
 {
     public class Startup
-    {
+    { 
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
