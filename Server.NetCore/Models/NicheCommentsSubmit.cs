@@ -35,7 +35,7 @@ namespace Server.NetCore.Models
         /// <summary>
         /// 
         /// </summary>
-        public int stars { get; set; }
+        public decimal stars { get; set; }
         /// <summary>
         /// 
         /// </summary>
@@ -60,6 +60,7 @@ namespace Server.NetCore.Models
 
     public class NicheCommentsSubmit
     {
+        public string ID { get; set; }
         /// <summary>
         /// 请问请问
         /// </summary>
