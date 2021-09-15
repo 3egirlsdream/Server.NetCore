@@ -68,14 +68,16 @@ namespace Server.NetCore.Models
         /// <summary>
         /// 
         /// </summary>
-        public int ENVIRONMENT_SCORE { get; set; }
+        public decimal ENVIRONMENT_SCORE { get; set; }
         /// <summary>
         /// 
         /// </summary>
-        public int OTHER_SCORE { get; set; }
+        public decimal OTHER_SCORE { get; set; }
         /// <summary>
         /// 
         /// </summary>
         public List<DETAILSItem> DETAILS { get; set; }
+
+        public List<string> URLS { get; set; }
     }
 }

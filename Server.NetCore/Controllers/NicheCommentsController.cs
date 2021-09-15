@@ -18,42 +18,54 @@ namespace Server.NetCore.Controllers
         public void Submit(JToken jt)
         {
             var model = JsonConvert.DeserializeObject<NicheCommentsSubmit>(jt.ToString());
-            var shop = new SYS_SHOP_INFO
-            {
-                ID = Guid.NewGuid().ToString("N").ToUpper(),
-                DATETIME_CREATED = DateTime.Now,
-                USER_CREATED = "SYS",
-                SHOP_NAME = model.SHOP_NAME,
-                ENVIRONMENT_SCORE = model.ENVIRONMENT_SCORE,
-                OTHER_SCORE = model.OTHER_SCORE
-            };
+           
             using(var db = SugarContext.GetInstance())
             {
-                db.Insertable(shop).ExecuteCommand();
-
-                foreach(var item in model.DETAILS)
+                var shop = db.Queryable<SYS_SHOP_INFO>().Where(c => c.SHOP_NAME == model.SHOP_NAME).ToList().FirstOrDefault();
+                if (shop == null)
                 {
-                    var detail = new SYS_SHOP_DETAIL
+                    shop = new SYS_SHOP_INFO
                     {
                         ID = Guid.NewGuid().ToString("N").ToUpper(),
                         DATETIME_CREATED = DateTime.Now,
                         USER_CREATED = "SYS",
-                        SHOP_ID = shop.ID,
-                        FOOD_NAME = item.project,
-                        SCORE = item.stars
+                        SHOP_NAME = model.SHOP_NAME,
+                        ENVIRONMENT_SCORE = model.ENVIRONMENT_SCORE,
+                        OTHER_SCORE = model.OTHER_SCORE
                     };
-                    db.Insertable(detail).ExecuteCommand();
-                    foreach(var url  in item.atts)
+                    db.Insertable(shop).ExecuteCommand();
+                }
+
+                foreach(var item in model.DETAILS)
+                {
+                    var detail = db.Queryable<SYS_SHOP_DETAIL>().Where(c => c.SHOP_ID == shop.ID && c.FOOD_NAME == item.project).ToList().FirstOrDefault();
+                    if (detail is null)
                     {
-                        var att = new FOOD_IMAGES
+                        detail = new SYS_SHOP_DETAIL
                         {
                             ID = Guid.NewGuid().ToString("N").ToUpper(),
                             DATETIME_CREATED = DateTime.Now,
                             USER_CREATED = "SYS",
-                            SHOP_DETAIL_ID = detail.ID,
-                            URL = url.CDN
+                            SHOP_ID = shop.ID,
+                            FOOD_NAME = item.project,
+                            SCORE = item.stars
                         };
-                        db.Insertable(att).ExecuteCommand();
+                        db.Insertable(detail).ExecuteCommand();
+                    }
+                    if (item.atts != null)
+                    {
+                        foreach (var url in item.atts)
+                        {
+                            var att = new FOOD_IMAGES
+                            {
+                                ID = Guid.NewGuid().ToString("N").ToUpper(),
+                                DATETIME_CREATED = DateTime.Now,
+                                USER_CREATED = "SYS",
+                                SHOP_DETAIL_ID = detail.ID,
+                                URL = url.CDN
+                            };
+                            db.Insertable(att).ExecuteCommand();
+                        }
                     }
                 }
             }
@@ -69,7 +81,7 @@ namespace Server.NetCore.Controllers
                 (
                     JoinType.Inner, i.ID == d.SHOP_ID,
                     JoinType.Left, d.ID == f.SHOP_DETAIL_ID
-                )).OrderBy((i, d, f)=> i.DATETIME_CREATED, OrderByType.Desc).Select((i, d, f) => new
+                )).OrderBy((i, d, f)=> i.DATETIME_CREATED, OrderByType.Desc).OrderBy((i, d, f)=> d.DATETIME_CREATED, OrderByType.Asc).Select((i, d, f) => new
                 {
                     i.ID,
                     i.SHOP_NAME,
@@ -83,8 +95,9 @@ namespace Server.NetCore.Controllers
                 {
                     ID = x.Key.ID,
                     SHOP_NAME = x.Key.SHOP_NAME,
-                    ENVIRONMENT_SCORE = (int)x.Key.ENVIRONMENT_SCORE,
-                    OTHER_SCORE = (int)x.Key.OTHER_SCORE,
+                    ENVIRONMENT_SCORE = x.Key.ENVIRONMENT_SCORE,
+                    OTHER_SCORE = x.Key.OTHER_SCORE,
+                    URLS = x.Where(v=> !string.IsNullOrEmpty(v.URL)).Select(c=>c.URL).Distinct().ToList(),
                     DETAILS = x.GroupBy(z => new { z.FOOD_NAME, z.SCORE })
                     .Select(z => new DETAILSItem
                     {
