@@ -24,8 +24,9 @@ namespace DotNetCoreServer.Common
             var tokenHandler = new JwtSecurityTokenHandler();
             var jt = tokenHandler.ReadJwtToken(token);
             var tt = jt.Claims.ToList();
-            BaseController.ACCOUNT = tt[0].Value;
+            //BaseController.ACCOUNT = tt[0].Value;
             //BaseController.IS_ADMIN = tt[1].Value == "Y";
+            BaseController.IS_LOGIN = tt[0].Value == "Y";
             BaseController.TOKEN = token;
             //BaseController.SHOP_ID = tt[2].Value;
         }

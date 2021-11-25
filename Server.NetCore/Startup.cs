@@ -22,6 +22,7 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using DotNetCoreServer.Common;
+using Opw.HttpExceptions.AspNetCore;
 //using Newtonsoft.Json.Serialization;
 //using Microsoft.OpenApi.Models;
 
@@ -169,6 +170,8 @@ namespace DotNetCoreServer
             {
                 options.MaximumReceiveMessageSize = null;
             });
+
+            services.AddControllers().AddHttpExceptions();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -194,6 +197,8 @@ namespace DotNetCoreServer
             app.UseCors("any");
 
             app.UseAuthorization();
+
+            app.UseHttpExceptions();
 
             app.UseEndpoints(endpoints =>
             {

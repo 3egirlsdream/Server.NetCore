@@ -1,4 +1,5 @@
-﻿using DotNetCoreServer.Models;
+﻿using DotNetCoreServer.Domians;
+using DotNetCoreServer.Models;
 using Newtonsoft.Json;
 using SqlSugar;
 using System;
@@ -84,10 +85,12 @@ namespace DotNetCoreServer.Domains
 
                     if (res != null)
                     {
+                        var token = AuthDomain.Current.BuildToken(true);
                         return new
                         {
                             Message = "登录成功",
-                            data = res
+                            data = res,
+                            token
                         };
                     }
                     else
@@ -109,12 +112,6 @@ namespace DotNetCoreServer.Domains
             {
                 try
                 {
-                    //if (!UserIsExist(username, db))
-                    //{
-                    //    throw new Exception("用户不存在");
-                    //}
-
-
                     var res = db.Queryable<SYS_USER>()
                         .Where(e => e.USER_NAME == username).First();
 
@@ -149,7 +146,7 @@ namespace DotNetCoreServer.Domains
             return res > 0;
         }
 
-        private bool PwdIsRight(string user, string pwd, SqlSugarClient db)
+        public bool PwdIsRight(string user, string pwd, SqlSugarClient db)
         {
             var res = db.Queryable<SYS_USER>()
                 .Where(e => e.USER_NAME == user && e.PASSWORD == pwd)
