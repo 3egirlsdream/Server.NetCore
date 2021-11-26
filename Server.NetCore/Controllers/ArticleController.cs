@@ -14,17 +14,10 @@ namespace DotNetCoreServer.Controllers
 {
     public class ArticleController : BaseController
     {
-        // GET api/values
-        //[HttpGet]
-        //public ActionResult<IEnumerable<string>> Get()
-        //{
-        //    return new string[] { "value1", "value2" };
-        //}
-
-
         [HttpPost]
         public object Write([FromBody] Object value)
         {
+            CheckLogin();
             var result = JsonConvert.DeserializeObject<dynamic>(value.ToString());
             string title = result.title;
             string content = result.content;
@@ -69,6 +62,7 @@ namespace DotNetCoreServer.Controllers
         [HttpPost]
         public object EditArticle(JToken jt)
         {
+            CheckLogin();
             return WriteArticle.Current.EditArticle(jt);
         }
 
@@ -76,7 +70,16 @@ namespace DotNetCoreServer.Controllers
         [HttpGet]
         public void Delete(string id)
         {
+            CheckLogin();
             WriteArticle.Current.Delete(id);
+        }
+
+        private void CheckLogin()
+        {
+            if(!BaseController.IS_LOGIN)
+            {
+                throw new Exception("请先登录");
+            }
         }
     }
 }
