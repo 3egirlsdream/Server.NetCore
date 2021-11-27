@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Commons\Middleware.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="SqlConn.json" />
   </ItemGroup>
 

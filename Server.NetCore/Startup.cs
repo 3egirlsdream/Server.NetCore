@@ -191,7 +191,7 @@ namespace DotNetCoreServer
             });
 
             app.UseHttpsRedirection();
-            app.UseHeaderMiddleware();
+           // app.UseHeaderMiddleware();
 
             app.UseRouting();
             app.UseCors("any");
