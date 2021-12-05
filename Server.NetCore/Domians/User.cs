@@ -81,7 +81,7 @@ namespace DotNetCoreServer.Domains
                     }
 
                     var res = db.Queryable<SYS_USER>()
-                        .Where(e => e.USER_NAME == user && e.PASSWORD == pwd).First();
+                        .Where(e => e.USER_NAME == user && e.PASSWORD == pwd).Select(c => new { c.IMG, c.ID, c.DISPLAY_NAME }).First();
 
                     if (res != null)
                     {

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetCoreServer.Domains;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Server.NetCore.Controllers
 {
@@ -21,6 +22,7 @@ namespace Server.NetCore.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public object Login(string user, string pwd)
         {
             return DotNetCoreServer.Domains.User.Current.Login(user, pwd);

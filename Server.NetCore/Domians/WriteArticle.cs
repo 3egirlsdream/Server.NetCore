@@ -95,17 +95,20 @@ namespace DotNetCoreServer.Domians
             using (var db = SugarContext.GetInstance())
             {
                 int total = 0;
-                var result = db.Queryable<ARTICLE, ARTICLE, ARTICLE>((a, a2, a3) => new
+                var result = db.Queryable<ARTICLE, ARTICLE, ARTICLE, SYS_USER>((a, a2, a3, su) => new
                 (
                     JoinType.Left, a.LAST_ESSAY == a2.ID,
-                    JoinType.Left, a.NEXT_ESSAY == a3.ID
+                    JoinType.Left, a.NEXT_ESSAY == a3.ID,
+                    JoinType.Left, a.USER_CREATED == su.USER_NAME
                 )).OrderBy((a, a2, a3) => a.DATETIME_CREATED, OrderByType.Desc)
                     .Where((a, a2, a3) => a.USER_CREATED == user && a.STATE == "A")
                     .WhereIF(!string.IsNullOrEmpty(category) && category != "全部", (a, a2, a3) => a.ARTICLE_CATEGORY.Contains(category))
-                    .Select((a, a2, a3) => new
+                    .Select((a, a2, a3, su) => new
                     {
                         a.IMG_CODE,
                         a.ID,
+                        su.DISPLAY_NAME,
+                        su.IMG,
                         DATETIME_CREATED = a.DATETIME_CREATED.ToString("yyyy-MM-dd"),
                         CONTENT = a.CONTENT,
                         a.ARTICLE_NAME,

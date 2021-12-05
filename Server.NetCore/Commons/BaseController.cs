@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace DotNetCoreServer.Common
 {
     [WebApi]
-    [Auth]
+    //[Auth]
     public class BaseController : ControllerBase
     {
         //public static string SHOP_ID { get; set; }
