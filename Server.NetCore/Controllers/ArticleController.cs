@@ -53,10 +53,19 @@ namespace DotNetCoreServer.Controllers
                 var result = JsonConvert.DeserializeObject<dynamic>(cache);
                 List<dynamic> ls = JsonConvert.DeserializeObject<List<dynamic>>(Convert.ToString(result.data));
                 var totalCount = ls.Count;
-                ls = ls.Where(c=>c.ARTICLE_CATEGORY.ToString().Contains(category)).Skip((startIndex - 1) * length).Take(length).ToList();
+                IEnumerable<dynamic> list = new List<dynamic>();
+                if (category == "全部")
+                {
+                    list = ls.Skip((startIndex - 1) * length).Take(length);
+                }
+                else
+                {
+                    list = ls.Where(c => c.ARTICLE_CATEGORY.ToString().Contains(category)).Skip((startIndex - 1) * length).Take(length);
+                }
+
                 return new
                 {
-                    data = ls,
+                    data = list.ToList(),
                     totalCount
                 };
             }
