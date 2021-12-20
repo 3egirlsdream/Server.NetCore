@@ -52,7 +52,6 @@ namespace DotNetCoreServer
             //    c.SwaggerDoc("v2", new OpenApiInfo { Title = "DotNetCoreServer", Version = "v2" });
             //});
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Latest);
             services.AddCors(options =>
             options.AddPolicy("any", builder =>
             builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()));
@@ -171,7 +170,15 @@ namespace DotNetCoreServer
                 options.MaximumReceiveMessageSize = null;
             });
 
+            //redis
+            var section = Configuration.GetSection("Redis:Default");
+            var _connectionString = section.GetSection("Connection").Value;
+            var redisInstanceName = section.GetSection("InstanceName").Value;
+            int defaultDb = int.Parse(section.GetSection("DefaultDB").Value ?? "0");
+            services.AddSingleton(new RedisHelper(_connectionString, redisInstanceName, defaultDb));
+
             services.AddControllers().AddHttpExceptions();
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Latest);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

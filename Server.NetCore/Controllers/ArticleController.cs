@@ -9,11 +9,19 @@ using DotNetCoreServer.Domians;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using DotNetCoreServer.Common;
+using StackExchange.Redis;
 
 namespace DotNetCoreServer.Controllers
 {
     public class ArticleController : BaseController
     {
+
+        private readonly IDatabase _database;
+
+        public ArticleController(RedisHelper helper)
+        {
+            _database = helper.GetDatabase();
+        }
         [HttpPost]
         public object Write([FromBody] Object value)
         {
@@ -25,7 +33,9 @@ namespace DotNetCoreServer.Controllers
             string category = result.category;
             string last = result.last;
             string next = result.next;
-            return WriteArticle.Current.NewArticle(title, content, user, category, last, next);
+            var rtl = WriteArticle.Current.NewArticle(title, content, user, category, last, next);
+            WriteArticle.Current.StorageInMemory(_database);
+            return rtl;
         }
 
         [HttpGet]
@@ -37,6 +47,19 @@ namespace DotNetCoreServer.Controllers
         [HttpGet]
         public object GetArticlesToPage(string user, string category, int startIndex, int length)
         {
+            var cache = _database.StringGet("all_articles");
+            if (!string.IsNullOrEmpty(cache))
+            {
+                var result = JsonConvert.DeserializeObject<dynamic>(cache);
+                List<dynamic> ls = JsonConvert.DeserializeObject<List<dynamic>>(Convert.ToString(result.data));
+                var totalCount = ls.Count;
+                ls = ls.Where(c=>c.ARTICLE_CATEGORY.ToString().Contains(category)).Skip((startIndex - 1) * length).Take(length).ToList();
+                return new
+                {
+                    data = ls,
+                    totalCount
+                };
+            }
             return WriteArticle.Current.GetArticlesToPage(user, category, startIndex, length);
         }
 
@@ -63,7 +86,9 @@ namespace DotNetCoreServer.Controllers
         public object EditArticle(JToken jt)
         {
             CheckLogin();
-            return WriteArticle.Current.EditArticle(jt);
+            var result = WriteArticle.Current.EditArticle(jt);
+            WriteArticle.Current.StorageInMemory(_database);
+            return result;
         }
 
 
@@ -72,6 +97,12 @@ namespace DotNetCoreServer.Controllers
         {
             CheckLogin();
             WriteArticle.Current.Delete(id);
+        }
+
+        [HttpGet]
+        public void RefreshCache()
+        {
+            WriteArticle.Current.StorageInMemory(_database);
         }
 
         private void CheckLogin()

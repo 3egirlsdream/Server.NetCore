@@ -1,6 +1,7 @@
 ﻿using DotNetCoreServer.Models;
 using Newtonsoft.Json.Linq;
 using SqlSugar;
+using StackExchange.Redis;
 using SugarModel;
 using System;
 using System.Collections.Generic;
@@ -251,6 +252,13 @@ namespace DotNetCoreServer.Domians
             {
                 db.Ado.ExecuteCommand($"update ARTICLE set state = 'D', datetime_modified = GetDate() where id = '{id}'");
             }
+        }
+
+
+        public void StorageInMemory(IDatabase database)
+        {
+            var result = GetArticlesToPage("cxk", "全部", 1, 99999);
+            database.StringSet("all_articles", Newtonsoft.Json.JsonConvert.SerializeObject(result));
         }
     }
 }
