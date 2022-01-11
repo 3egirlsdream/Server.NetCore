@@ -23,6 +23,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using DotNetCoreServer.Common;
 using Opw.HttpExceptions.AspNetCore;
+using Server.NetCore.Commons;
 //using Newtonsoft.Json.Serialization;
 //using Microsoft.OpenApi.Models;
 
@@ -172,7 +173,7 @@ namespace DotNetCoreServer
 
             //redis
             var section = Configuration.GetSection("Redis:Default");
-            var _connectionString = section.GetSection("Connection").Value;
+            var _connectionString = SecretHelper.DESDecrypt(section.GetSection("Connection").Value);
             var redisInstanceName = section.GetSection("InstanceName").Value;
             int defaultDb = int.Parse(section.GetSection("DefaultDB").Value ?? "0");
             services.AddSingleton(new RedisHelper(_connectionString, redisInstanceName, defaultDb));
