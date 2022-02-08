@@ -22,6 +22,7 @@ namespace DotNetCoreServer.Controllers
         {
             _database = helper.GetDatabase();
         }
+
         [HttpPost]
         public object Write([FromBody] Object value)
         {

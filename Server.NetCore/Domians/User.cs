@@ -148,10 +148,17 @@ namespace DotNetCoreServer.Domains
 
         public bool PwdIsRight(string user, string pwd, SqlSugarClient db)
         {
-            var res = db.Queryable<SYS_USER>()
-                .Where(e => e.USER_NAME == user && e.PASSWORD == pwd)
-                .Count();
-            return res > 0;
+            try
+            {
+                var res = db.Queryable<SYS_USER>()
+                    .Where(e => e.USER_NAME == user && e.PASSWORD == pwd)
+                    .Count();
+                return res > 0;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public object GetChatRecord(string groupId)
