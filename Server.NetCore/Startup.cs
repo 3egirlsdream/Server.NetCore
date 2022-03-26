@@ -24,6 +24,7 @@ using Newtonsoft.Json.Serialization;
 using DotNetCoreServer.Common;
 using Opw.HttpExceptions.AspNetCore;
 using Server.NetCore.Commons;
+using RabbitMQ.Client;
 //using Newtonsoft.Json.Serialization;
 //using Microsoft.OpenApi.Models;
 
@@ -31,7 +32,7 @@ using Server.NetCore.Commons;
 namespace DotNetCoreServer
 {
     public class Startup
-    { 
+    {
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -180,6 +181,18 @@ namespace DotNetCoreServer
 
             services.AddControllers().AddHttpExceptions();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Latest);
+
+            section = Configuration.GetSection("RabbitMQ:Default");
+            var host = SecretHelper.DESDecrypt(section.GetSection("Host").Value);
+            var user = SecretHelper.DESDecrypt(section.GetSection("User").Value);
+            var password = SecretHelper.DESDecrypt(section.GetSection("Password").Value);
+            services.AddRabbitMQ(new ConnectionFactory//创建连接工厂对象
+            {
+                HostName = host,//IP地址
+                Port = 5672,//端口号
+                UserName = user,//用户账号
+                Password = password//用户密码
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -188,7 +201,7 @@ namespace DotNetCoreServer
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                
+
                 //app.UseSwagger();
                 //app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v2/swagger.json", "DotNetCoreServer"));
             }
@@ -199,7 +212,7 @@ namespace DotNetCoreServer
             });
 
             app.UseHttpsRedirection();
-           // app.UseHeaderMiddleware();
+            // app.UseHeaderMiddleware();
 
             app.UseRouting();
             app.UseCors("any");

@@ -8,6 +8,7 @@ using DotNetCoreServer.Domians;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using DotNetCoreServer.Common;
+using Server.NetCore.Domians;
 
 namespace DotNetCoreServer.Controllers
 {
@@ -17,6 +18,14 @@ namespace DotNetCoreServer.Controllers
         public ActionResult<IEnumerable<string>> Get()
         {
             return new string[] { "value1", "value2" };
+        }
+
+        [HttpGet]
+        public void RabbitMQ(string id)
+        {
+            RabbitMQDomain mq = new RabbitMQDomain();
+            //mq.Consumer();
+            mq.Producter(id);
         }
 
         [HttpGet("id={id}")]

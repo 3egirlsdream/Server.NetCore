@@ -8,6 +8,7 @@ namespace Server.NetCore.Models
 {
     public partial class MUSIC_INFO
     {
+		[SugarColumn(IsPrimaryKey = true)]
 		public string ID { get; set; }
 		public DateTime DATETIME_CREATED { get; set; }
 		public string USER_CREATED { get; set; }

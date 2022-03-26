@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Data;
 using System.Collections.Generic;
+using SqlSugar;
+
 namespace SugarModel
 {
     internal partial class IMAGE
@@ -14,6 +16,7 @@ namespace SugarModel
             this.ID = id;
             this.STATE = "A";
         }
+        [SugarColumn(IsPrimaryKey = true)]
         public string ID { get; set; }
         public DateTime DATETIME_CREATED { get; set; }
         public string USER_CREATED { get; set; }

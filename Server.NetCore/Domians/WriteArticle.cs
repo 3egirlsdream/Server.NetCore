@@ -5,6 +5,7 @@ using StackExchange.Redis;
 using SugarModel;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -64,7 +65,7 @@ namespace DotNetCoreServer.Domians
         {
             using(var db = SugarContext.GetInstance())
             {
-                var result = db.Queryable<ARTICLE, ARTICLE, ARTICLE>((a, a2, a3) => new
+                var query = db.Queryable<ARTICLE, ARTICLE, ARTICLE>((a, a2, a3) => new
                 (
                     JoinType.Left, a.LAST_ESSAY == a2.ID,
                     JoinType.Left, a.NEXT_ESSAY == a3.ID
@@ -84,7 +85,8 @@ namespace DotNetCoreServer.Domians
                         LAST_ESSAY_NAME = a2.ARTICLE_NAME,
                         a.NEXT_ESSAY,
                         NEXT_ESSAY_NAME = a3.ARTICLE_NAME
-                    }).ToList();
+                    });
+                var result = query.ToList();
                 return result;
 
             }
