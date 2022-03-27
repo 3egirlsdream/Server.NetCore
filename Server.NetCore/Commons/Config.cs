@@ -36,6 +36,7 @@ namespace DotNetCoreServer.Models
     {
         public string SqlString { get; set; }
         public string SqlString2 { get; set; }
+        public string SqlString3 { get; set; }
         public string GitPath { get; set; }
     }
 }
