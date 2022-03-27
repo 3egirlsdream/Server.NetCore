@@ -17,6 +17,13 @@ namespace DotNetCoreServer.Models
             return rtl.SqlString;
         }
 
+        public static CONFIG GetConfig()
+        {
+            var res = Program.LoadJson("config.json");
+            var rtl = JsonConvert.DeserializeObject<CONFIG>(res);
+            return rtl;
+        }
+
         public static string GitPath()
         {
             var res = Program.LoadJson("config.json");
@@ -25,9 +32,10 @@ namespace DotNetCoreServer.Models
         }
     }
 
-    class CONFIG
+    public class CONFIG
     {
         public string SqlString { get; set; }
+        public string SqlString2 { get; set; }
         public string GitPath { get; set; }
     }
 }

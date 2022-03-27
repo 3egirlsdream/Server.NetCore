@@ -1,4 +1,6 @@
 {
-  "SqlString": "Data Source=private.thankful.top;Initial Catalog=db;User ID=sa;Password=jiangxinji.123",
+  "SqlString": "Server=private.thankful.top;Database=db;Uid=root;Pwd=jiangxinji.123",
+  "SqlString3": "Data Source=private.thankful.top;Initial Catalog=db;User ID=sa;Password=jiangxinji.123",
+  "SqlString2": "Server=42.194.131.197;Database=db;Uid=root;Pwd=jiangxinji.123",
   "GitPath": "C:\\Users\\xulez\\source\\repos\\GitTest"
 }

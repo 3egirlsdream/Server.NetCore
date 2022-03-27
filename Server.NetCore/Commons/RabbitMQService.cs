@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using DotNetCoreServer;
+using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -19,9 +20,9 @@ namespace Server.NetCore.Commons
             //声明交换机
             chanel1.ExchangeDeclare(exchangeName, ExchangeType.Fanout);
             //消息队列名称
-            string queneName = DateTime.Now.Second.ToString();
+            string queneName = DateTime.Now.Year.ToString();
             //声明队列
-            chanel1.QueueDeclare(queneName, false, false, false, null);
+            chanel1.QueueDeclare(queneName, false, true, true, null);
             //交换机和队列绑定
             chanel1.QueueBind(queneName, exchangeName, "", null);
             //定义消费者
@@ -30,7 +31,7 @@ namespace Server.NetCore.Commons
             consumer.Received += (model, ea) =>
             {
                 byte[] message = ea.Body.ToArray();//接收到的消息
-                Debug.WriteLine($"接收到信息为:{Encoding.UTF8.GetString(message)}");
+                AsyncSql(Encoding.UTF8.GetString(message));
                 //返回消息确认
                 chanel1.BasicAck(ea.DeliveryTag, true);
             };
@@ -39,5 +40,22 @@ namespace Server.NetCore.Commons
             Debug.WriteLine($"队列名称:{queneName}");
             return services;
         }
+
+        private static bool AsyncSql(string sql)
+        {
+            try
+            {
+                using (var db = SugarContext.GetInstance2())
+                {
+                    var result = db.Ado.ExecuteCommand(sql);
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
     }
 }

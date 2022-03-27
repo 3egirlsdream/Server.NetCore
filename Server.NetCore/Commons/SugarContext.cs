@@ -1,4 +1,5 @@
 ﻿using DotNetCoreServer.Models;
+using Server.NetCore.Domians;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
@@ -29,23 +30,32 @@ namespace DotNetCoreServer
             new ConnectionConfig()
             {
                 ConnectionString = Config.SqlString(), // "Data Source=47.107.186.141;Initial Catalog=db;User ID=sa;Password=jiangxinji.123",
-                DbType = DbType.SqlServer,//设置数据库类型
+                DbType = DbType.MySql,//设置数据库类型
                 IsAutoCloseConnection = true,//自动释放数据务，如果存在事务，在事务结束后释放
                 InitKeyType = InitKeyType.Attribute //从实体特性中读取主键自增列信息
             });
 
+            var mq = new RabbitMQDomain();
             db.Aop.OnLogExecuted = (sql, pars) => //SQL执行完事件
             {
                 foreach (var p in pars)
                 {
                     string s = "";
-                    if (p.Value is string)
+                    if (p.DbType == System.Data.DbType.String)
                     {
                         s = $"\'{p.Value}\'";
                     }
-                    else if(p.Value is DateTime)
+                    else if (p.DbType == System.Data.DbType.DateTime || p.DbType == System.Data.DbType.Date || p.DbType == System.Data.DbType.DateTime2)
                     {
-                        s = $"\'{p.Value}\'";
+                        if (string.IsNullOrEmpty(Convert.ToString(p.Value)))
+                        {
+                            s = $"\'{DateTime.Now.ToString()}\'";
+                        }
+                        else
+                        {
+                            var dt = Convert.ToDateTime(p.Value);
+                            s = $"\'{dt.ToString()}\'";
+                        }
                     }
                     else
                     {
@@ -54,8 +64,22 @@ namespace DotNetCoreServer
                     if (string.IsNullOrEmpty(s)) s = "\'\'";
                     sql = sql.Replace(p.ParameterName, s);
                 }
-                Debug.WriteLine(sql);
+                mq.Producter(sql);
             };
+
+            return db;
+        }
+
+        public static SqlSugarClient GetInstance2()
+        {
+            var db = new SqlSugarClient(
+            new ConnectionConfig()
+            {
+                ConnectionString = Config.GetConfig().SqlString2, // "Data Source=47.107.186.141;Initial Catalog=db;User ID=sa;Password=jiangxinji.123",
+                DbType = DbType.MySql,//设置数据库类型
+                IsAutoCloseConnection = true,//自动释放数据务，如果存在事务，在事务结束后释放
+                InitKeyType = InitKeyType.Attribute //从实体特性中读取主键自增列信息
+            });
             return db;
         }
     }
