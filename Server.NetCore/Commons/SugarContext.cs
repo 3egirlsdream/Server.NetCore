@@ -49,12 +49,12 @@ namespace DotNetCoreServer
                     {
                         if (string.IsNullOrEmpty(Convert.ToString(p.Value)))
                         {
-                            s = $"\'{DateTime.Now.ToString()}\'";
+                            s = $"\'{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}\'";
                         }
                         else
                         {
                             var dt = Convert.ToDateTime(p.Value);
-                            s = $"\'{dt.ToString()}\'";
+                            s = $"\'{dt.ToString("yyyy-MM-dd HH:mm:ss")}\'";
                         }
                     }
                     else
@@ -66,7 +66,14 @@ namespace DotNetCoreServer
                 }
                 mq.Producter(sql);
             };
-
+            try
+            {
+                db.Open();
+            }
+            catch
+            {
+                db = GetInstance2();
+            }
             return db;
         }
 

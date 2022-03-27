@@ -20,7 +20,7 @@ namespace Server.NetCore.Commons
             //声明交换机
             chanel1.ExchangeDeclare(exchangeName, ExchangeType.Fanout);
             //消息队列名称
-            string queneName = DateTime.Now.Year.ToString();
+            string queneName = DateTime.Now.Second.ToString();
             //声明队列
             chanel1.QueueDeclare(queneName, false, true, true, null);
             //交换机和队列绑定
