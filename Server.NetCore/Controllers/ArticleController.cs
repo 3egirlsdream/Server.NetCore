@@ -107,6 +107,7 @@ namespace DotNetCoreServer.Controllers
         {
             CheckLogin();
             WriteArticle.Current.Delete(id);
+            WriteArticle.Current.StorageInMemory(_database);
         }
 
         [HttpGet]

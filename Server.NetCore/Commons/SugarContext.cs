@@ -29,7 +29,7 @@ namespace DotNetCoreServer
             var db = new SqlSugarClient(
             new ConnectionConfig()
             {
-                ConnectionString = Config.SqlString(), // "Data Source=47.107.186.141;Initial Catalog=db;User ID=sa;Password=jiangxinji.123",
+                ConnectionString = Config.GetConfig().SqlString2, // "Data Source=47.107.186.141;Initial Catalog=db;User ID=sa;Password=jiangxinji.123",
                 DbType = DbType.MySql,//设置数据库类型
                 IsAutoCloseConnection = true,//自动释放数据务，如果存在事务，在事务结束后释放
                 InitKeyType = InitKeyType.Attribute //从实体特性中读取主键自增列信息
@@ -82,7 +82,7 @@ namespace DotNetCoreServer
             var db = new SqlSugarClient(
             new ConnectionConfig()
             {
-                ConnectionString = Config.GetConfig().SqlString2, // "Data Source=47.107.186.141;Initial Catalog=db;User ID=sa;Password=jiangxinji.123",
+                ConnectionString = Config.SqlString(), // "Data Source=47.107.186.141;Initial Catalog=db;User ID=sa;Password=jiangxinji.123",
                 DbType = DbType.MySql,//设置数据库类型
                 IsAutoCloseConnection = true,//自动释放数据务，如果存在事务，在事务结束后释放
                 InitKeyType = InitKeyType.Attribute //从实体特性中读取主键自增列信息
