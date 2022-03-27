@@ -252,7 +252,10 @@ namespace DotNetCoreServer.Domians
         {
             using (var db = SugarContext.GetInstance())
             {
-                db.Ado.ExecuteCommand($"update ARTICLE set state = 'D', datetime_modified = GetDate() where id = '{id}'");
+                var article = db.Queryable<ARTICLE>().Where(x => x.ID == id).ToList().FirstOrDefault();
+                article.STATE = "D";
+                article.DATETIME_MODIFIED = DateTime.Now;
+                db.Updateable(article).ExecuteCommand();
             }
         }
 
