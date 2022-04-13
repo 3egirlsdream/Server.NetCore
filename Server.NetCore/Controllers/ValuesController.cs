@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using DotNetCoreServer.Common;
 using Server.NetCore.Domians;
+using System.Threading;
 
 namespace DotNetCoreServer.Controllers
 {
@@ -111,6 +112,13 @@ namespace DotNetCoreServer.Controllers
         public void DeleteEmoji(string groupId, string url)
         {
             Domains.User.Current.DeleteEmoji(groupId, url);
+        }
+
+        [HttpGet]
+        public string Delay()
+        {
+            Thread.Sleep(4000);
+            return "YES";
         }
     }
 }
