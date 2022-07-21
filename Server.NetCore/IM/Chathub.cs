@@ -10,6 +10,7 @@ namespace IM
     {
         public static List<User> UsersId = new List<User>();
         public static List<MsgCache> UnReadMsg = new List<MsgCache>();
+        public static List<AddFriendCache> AddFriendCaches = new List<AddFriendCache>();
         public Task SendMsg(string username, string sendto, string message)
         {
             var id = UsersId.FirstOrDefault(c => c.userName == sendto);
@@ -54,9 +55,23 @@ namespace IM
         {
             return Clients.All.SendAsync("ShowOrder", orderId, displagname, username, content);
         }
-        public Task AddFriend(string applyPeople, string to)
+        public Task AddFriend(string applyUser, string AddedUser)
         {
-            return Clients.All.SendAsync("AddFriend", applyPeople, to);
+            var user = UsersId.FirstOrDefault(c => c.userName == AddedUser);
+            if (user != null)
+            {
+                return Clients.Client(user.connectionId).SendAsync("AddFriend", applyUser, AddedUser);
+            }
+            else
+            {
+                var curUser = UsersId.FirstOrDefault(c => c.userName == applyUser);
+                if (AddFriendCaches.Count(c => c.ApplyUser.userName == applyUser && c.AddedUser.userName == AddedUser) == 0)
+                {
+                    AddFriendCaches.Add(new AddFriendCache() { ApplyUser = curUser, AddedUser = new User("", AddedUser) });
+                }
+                return Task.CompletedTask;
+            }
+           
         }
 
         [HubMethodName("GetName")]
@@ -79,11 +94,27 @@ namespace IM
             SendUnReadMsg(receiveUser, sendUser);
         }
 
+        [HubMethodName("SendUnAddFriend")]
+        public void SendUnAddFriend(string receiveUser)
+        {
+            sendUnAddFriend(receiveUser);
+        }
+
 
 
         public override Task OnConnectedAsync()
         {
             return base.OnConnectedAsync();
+        }
+
+
+        private void sendUnAddFriend(string receiveUser)
+        {
+            var users = AddFriendCaches.Where(c => c.AddedUser.userName == receiveUser).ToList();
+            foreach(var user in users)
+            {
+                Clients.Client(Context.ConnectionId).SendAsync("AddFriend", user.ApplyUser.userName, receiveUser);
+            }
         }
 
 
@@ -144,6 +175,12 @@ namespace IM
     {
         public string sendFrom { get; set; }
         public string Msg { get; set; }
+    }
+
+    public class AddFriendCache
+    {
+        public User ApplyUser { get; set; }
+        public User AddedUser { get; set; }
     }
 
 }
