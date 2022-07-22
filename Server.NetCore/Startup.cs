@@ -186,13 +186,13 @@ namespace DotNetCoreServer
             var host = SecretHelper.DESDecrypt(section.GetSection("Host").Value);
             var user = SecretHelper.DESDecrypt(section.GetSection("User").Value);
             var password = SecretHelper.DESDecrypt(section.GetSection("Password").Value);
-            services.AddRabbitMQ(new ConnectionFactory//创建连接工厂对象
-            {
-                HostName = host,//IP地址
-                Port = 5672,//端口号
-                UserName = user,//用户账号
-                Password = password//用户密码
-            });
+            //services.AddRabbitMQ(new ConnectionFactory//创建连接工厂对象
+            //{
+            //    HostName = host,//IP地址
+            //    Port = 5672,//端口号
+            //    UserName = user,//用户账号
+            //    Password = password//用户密码
+            //});
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

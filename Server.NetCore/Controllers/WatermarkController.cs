@@ -19,7 +19,7 @@ namespace Server.NetCore.Controllers
     public class WatermarkController : BaseController
     {
         [HttpPost]
-        public string Upload(IFormFile file)
+        public object Upload(IFormFile file, bool show)
         {
             var line = Path.DirectorySeparatorChar;
             BinaryReader r = new BinaryReader(file.OpenReadStream());
@@ -34,10 +34,20 @@ namespace Server.NetCore.Controllers
                 Directory.CreateDirectory(folder);
             }
 
-
             var name = Guid.NewGuid().ToString("N") + ".jpg";
             img.Save(folder + line + name, ImageFormat.Jpeg);
-            return name;
+            var binpath = AppDomain.CurrentDomain.BaseDirectory;
+            var path = binpath + Path.DirectorySeparatorChar;
+            var url = path + $"source{Path.DirectorySeparatorChar}" + name;
+
+            var rs = InitExifInfo(url, show);
+
+            return new {
+                name,
+                deviceName = rs.Item3,
+                mount = rs.Item1,
+                xy = rs.Item2
+            };
         }
 
         [HttpPost]
@@ -80,7 +90,7 @@ namespace Server.NetCore.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create(string pic, string logo, bool show)
+        public async Task<IActionResult> Create(string pic, string logo, bool show, string xy, string mount, string deviceName)
         {
             var binpath = AppDomain.CurrentDomain.BaseDirectory;
             var path = binpath + Path.DirectorySeparatorChar;
@@ -109,7 +119,7 @@ namespace Server.NetCore.Controllers
                 var c = Tuple.Create(Width, Height);
                 var dFileName = $"{DateTime.Now.ToString("yyyyMMddHHmmss")}.jpg";
                 logo = path + $"logo{Path.DirectorySeparatorChar}" + logo;
-                await CreateImage.AddWaterMarkImg(watermakPath, dFileName, $@"{logo}", datetime, rs.Item3, sourceImage, c, false, rs.Item1, rs.Item2, binpath, 1, 1);
+                await CreateImage.AddWaterMarkImg(watermakPath, dFileName, $@"{logo}", datetime, deviceName, sourceImage, c, false, mount, xy, binpath, 1, 1);
                 var output = binpath + $"output{Path.DirectorySeparatorChar}" + dFileName;
 
                 using (var sw = new FileStream(output, FileMode.Open))
@@ -156,7 +166,8 @@ namespace Server.NetCore.Controllers
                 var xy = "44°29′12\"E 33°23′46\"W";
 
                 var ex = new ExifInfo2();
-                var rs = ex.GetImageInfo(filePath, Image.FromFile(filePath));
+                var image = Image.FromFile(filePath);
+                var rs = ex.GetImageInfo(filePath, image);
 
                 if (!rs.ContainsKey("f") || !rs.ContainsKey("exposure")|| !rs.ContainsKey("ISO")|| !rs.ContainsKey("mm"))
                 {
@@ -183,6 +194,7 @@ namespace Server.NetCore.Controllers
                 {
                     datetime = d;
                 }
+                image.Dispose();
                 return Tuple.Create(mount, xy, deviceName, datetime);
             }
             catch (Exception ex)
