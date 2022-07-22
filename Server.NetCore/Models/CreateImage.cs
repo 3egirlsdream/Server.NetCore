@@ -33,7 +33,7 @@ namespace JointWatermark
                     Directory.CreateDirectory(sPath);
                 }
 
-                var rtlPath = sPath + $"\\{Guid.NewGuid().ToString("N")}.jpg";
+                var rtlPath = sPath + $"{Path.DirectorySeparatorChar}{Guid.NewGuid().ToString("N")}.jpg";
 
                 bmp.Save(rtlPath, System.Drawing.Imaging.ImageFormat.Jpeg);//指定图片格式   
                 bmp.Dispose();
@@ -74,7 +74,7 @@ namespace JointWatermark
                     Directory.CreateDirectory(sPath);
                 }
 
-                dFile = $@"{sPath}\\{dFile}";
+                dFile = $@"{sPath}{Path.DirectorySeparatorChar}{dFile}";
                //保存图片
                 _bitmap.Save(dFile, System.Drawing.Imaging.ImageFormat.Jpeg);
             });
@@ -144,7 +144,7 @@ namespace JointWatermark
                 {
                     Directory.CreateDirectory(sPath);
                 }
-                var resultPath = sPath + "\\" + dFile;
+                var resultPath = sPath + Path.DirectorySeparatorChar + dFile;
                 bitmap.Save(resultPath, ImageFormat.Jpeg);
 
                 waterImage.Dispose();

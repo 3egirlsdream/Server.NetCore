@@ -21,13 +21,14 @@ namespace Server.NetCore.Controllers
         [HttpPost]
         public string Upload(IFormFile file)
         {
+            var line = Path.DirectorySeparatorChar;
             BinaryReader r = new BinaryReader(file.OpenReadStream());
             r.BaseStream.Seek(0, SeekOrigin.Begin);    //将文件指针设置到文件开
             var bytes = r.ReadBytes((int)r.BaseStream.Length);
             Stream stream = new MemoryStream(bytes);
             Image img = Image.FromStream(stream);
 
-            var folder = AppDomain.CurrentDomain.BaseDirectory + "\\source";
+            var folder = AppDomain.CurrentDomain.BaseDirectory + $"{line}source";
             if(!Directory.Exists(folder))
             {
                 Directory.CreateDirectory(folder);
@@ -35,7 +36,7 @@ namespace Server.NetCore.Controllers
 
 
             var name = Guid.NewGuid().ToString("N") + ".jpg";
-            img.Save(folder + "\\" + name, ImageFormat.Jpeg);
+            img.Save(folder + line + name, ImageFormat.Jpeg);
             return name;
         }
 
@@ -48,7 +49,7 @@ namespace Server.NetCore.Controllers
             Stream stream = new MemoryStream(bytes);
             Image img = Image.FromStream(stream);
 
-            var folder = AppDomain.CurrentDomain.BaseDirectory + "\\logo";
+            var folder = AppDomain.CurrentDomain.BaseDirectory + $"{Path.DirectorySeparatorChar}logo";
             if (!Directory.Exists(folder))
             {
                 Directory.CreateDirectory(folder);
@@ -56,7 +57,7 @@ namespace Server.NetCore.Controllers
 
 
             var name = Guid.NewGuid().ToString("N") + ".png";
-            img.Save(folder + "\\" + name, ImageFormat.Png);
+            img.Save(folder + Path.DirectorySeparatorChar + name, ImageFormat.Png);
             return name;
         }
 
@@ -66,7 +67,7 @@ namespace Server.NetCore.Controllers
             var path = AppDomain.CurrentDomain.BaseDirectory;
             if (!string.IsNullOrEmpty(folder))
             {
-                file_path = folder + "\\" + file_path;
+                file_path = folder + Path.DirectorySeparatorChar + file_path;
             }
             using (var sw = new FileStream(path + file_path, FileMode.Open))
             {
@@ -82,8 +83,8 @@ namespace Server.NetCore.Controllers
         public async Task<IActionResult> Create(string pic, string logo, bool show)
         {
             var binpath = AppDomain.CurrentDomain.BaseDirectory;
-            var path = binpath + "\\";
-            var url = path + "source\\" + pic;
+            var path = binpath + Path.DirectorySeparatorChar;
+            var url = path + $"source{Path.DirectorySeparatorChar}" + pic;
             Bitmap sourceImage = new Bitmap(url);
             var img = Image.FromFile(url);
             string datetime;
@@ -107,9 +108,9 @@ namespace Server.NetCore.Controllers
                 var watermakPath = await CreateImage.CreatePic(Width, Height, AppDomain.CurrentDomain.BaseDirectory);
                 var c = Tuple.Create(Width, Height);
                 var dFileName = $"{DateTime.Now.ToString("yyyyMMddHHmmss")}.jpg";
-                logo = path + "logo\\" + logo;
+                logo = path + $"logo{Path.DirectorySeparatorChar}" + logo;
                 await CreateImage.AddWaterMarkImg(watermakPath, dFileName, $@"{logo}", datetime, rs.Item3, sourceImage, c, false, rs.Item1, rs.Item2, binpath, 1, 1);
-                var output = binpath + "output\\" + dFileName;
+                var output = binpath + $"output{Path.DirectorySeparatorChar}" + dFileName;
 
                 using (var sw = new FileStream(output, FileMode.Open))
                 {
