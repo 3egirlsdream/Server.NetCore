@@ -13,6 +13,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Globalization;
 using JointWatermark;
+using Server.NetCore.Models;
 
 namespace Server.NetCore.Controllers
 {
@@ -21,26 +22,24 @@ namespace Server.NetCore.Controllers
         [HttpPost]
         public object Upload(IFormFile file, bool show)
         {
-            var line = Path.DirectorySeparatorChar;
             BinaryReader r = new BinaryReader(file.OpenReadStream());
             r.BaseStream.Seek(0, SeekOrigin.Begin);    //将文件指针设置到文件开
             var bytes = r.ReadBytes((int)r.BaseStream.Length);
             Stream stream = new MemoryStream(bytes);
             Image img = Image.FromStream(stream);
 
-            var folder = AppDomain.CurrentDomain.BaseDirectory + $"{line}source";
-            if(!Directory.Exists(folder))
+            
+            if(!Directory.Exists(Global.Path_source))
             {
-                Directory.CreateDirectory(folder);
+                Directory.CreateDirectory(Global.Path_source);
             }
 
             var name = Guid.NewGuid().ToString("N") + ".jpg";
-            img.Save(folder + line + name, ImageFormat.Jpeg);
-            var binpath = AppDomain.CurrentDomain.BaseDirectory;
-            var path = binpath + Path.DirectorySeparatorChar;
-            var url = path + $"source{Path.DirectorySeparatorChar}" + name;
+            img.Save(Global.Path_source + Global.SeparatorChar + name, ImageFormat.Jpeg);
+            var url = Global.Path_source + Global.SeparatorChar + name;
 
-            var rs = InitExifInfo(url, show);
+            var rs = InitExifInfo(img, show);
+            img.Dispose();
 
             return new {
                 name,
@@ -59,27 +58,25 @@ namespace Server.NetCore.Controllers
             Stream stream = new MemoryStream(bytes);
             Image img = Image.FromStream(stream);
 
-            var folder = AppDomain.CurrentDomain.BaseDirectory + $"{Path.DirectorySeparatorChar}logo";
-            if (!Directory.Exists(folder))
+            if (!Directory.Exists(Global.Path_logo))
             {
-                Directory.CreateDirectory(folder);
+                Directory.CreateDirectory(Global.Path_logo);
             }
 
 
             var name = Guid.NewGuid().ToString("N") + ".png";
-            img.Save(folder + Path.DirectorySeparatorChar + name, ImageFormat.Png);
+            img.Save(Global.Path_logo + Global.SeparatorChar + name, ImageFormat.Png);
             return name;
         }
 
         [HttpGet]
         public async Task<IActionResult> Download(string file_path, string folder)
         {
-            var path = AppDomain.CurrentDomain.BaseDirectory;
             if (!string.IsNullOrEmpty(folder))
             {
-                file_path = folder + Path.DirectorySeparatorChar + file_path;
+                file_path = Global.BasePath + folder + Global.SeparatorChar + file_path;
             }
-            using (var sw = new FileStream(path + file_path, FileMode.Open))
+            using (var sw = new FileStream(file_path, FileMode.Open))
             {
                 var bytes = new byte[sw.Length];
                 sw.Read(bytes, 0, bytes.Length);
@@ -92,9 +89,7 @@ namespace Server.NetCore.Controllers
         [HttpGet]
         public async Task<IActionResult> Create(string pic, string logo, bool show, string xy, string mount, string deviceName)
         {
-            var binpath = AppDomain.CurrentDomain.BaseDirectory;
-            var path = binpath + Path.DirectorySeparatorChar;
-            var url = path + $"source{Path.DirectorySeparatorChar}" + pic;
+            var url = Global.Path_source + Global.SeparatorChar + pic;
             Bitmap sourceImage = new Bitmap(url);
             var img = Image.FromFile(url);
             string datetime;
@@ -109,18 +104,28 @@ namespace Server.NetCore.Controllers
                 datetime = DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss");
             }
 
-            var rs = InitExifInfo(url, show);
+            //var rs = InitExifInfo(url, show);
+            //deviceName = rs.Item3;
+            //mount = rs.Item1;
+            //if (!string.IsNullOrEmpty(rs.Item2))
+            //{
+            //    xy = rs.Item2;
+            //}
+            //if (!string.IsNullOrEmpty(rs.Item4))
+            //{
+            //    datetime = rs.Item4;
+            //}
 
             var Width = sourceImage.Width;
             var Height = sourceImage.Height;
             try
             {
-                var watermakPath = await CreateImage.CreatePic(Width, Height, AppDomain.CurrentDomain.BaseDirectory);
+                var watermakPath = await CreateImage.CreatePic(Width, Height);
                 var c = Tuple.Create(Width, Height);
                 var dFileName = $"{DateTime.Now.ToString("yyyyMMddHHmmss")}.jpg";
-                logo = path + $"logo{Path.DirectorySeparatorChar}" + logo;
-                await CreateImage.AddWaterMarkImg(watermakPath, dFileName, $@"{logo}", datetime, deviceName, sourceImage, c, false, mount, xy, binpath, 1, 1);
-                var output = binpath + $"output{Path.DirectorySeparatorChar}" + dFileName;
+                logo = Global.Path_logo + Global.SeparatorChar + logo;
+                await CreateImage.AddWaterMarkImg(watermakPath, dFileName, $@"{logo}", datetime, deviceName, sourceImage, c, mount, xy);
+                var output = Global.Path_output + Global.SeparatorChar + dFileName;
 
                 using (var sw = new FileStream(output, FileMode.Open))
                 {
@@ -158,7 +163,7 @@ namespace Server.NetCore.Controllers
             DotNetCoreServer.Domains.User.Current.RegistUser(value);
         }
 
-        private Tuple<string, string, string, string> InitExifInfo(string filePath, bool showCor)
+        private Tuple<string, string, string, string> InitExifInfo(Image image, bool showCor)
         {
             try
             {
@@ -166,8 +171,7 @@ namespace Server.NetCore.Controllers
                 var xy = "44°29′12\"E 33°23′46\"W";
 
                 var ex = new ExifInfo2();
-                var image = Image.FromFile(filePath);
-                var rs = ex.GetImageInfo(filePath, image);
+                var rs = ex.GetImageInfo(image);
 
                 if (!rs.ContainsKey("f") || !rs.ContainsKey("exposure")|| !rs.ContainsKey("ISO")|| !rs.ContainsKey("mm"))
                 {
@@ -194,7 +198,7 @@ namespace Server.NetCore.Controllers
                 {
                     datetime = d;
                 }
-                image.Dispose();
+                //image.Dispose();
                 return Tuple.Create(mount, xy, deviceName, datetime);
             }
             catch (Exception ex)
