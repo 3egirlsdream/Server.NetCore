@@ -25,28 +25,32 @@ namespace Server.NetCore.Controllers
             BinaryReader r = new BinaryReader(file.OpenReadStream());
             r.BaseStream.Seek(0, SeekOrigin.Begin);    //将文件指针设置到文件开
             var bytes = r.ReadBytes((int)r.BaseStream.Length);
-            Stream stream = new MemoryStream(bytes);
-            Image img = Image.FromStream(stream);
-
-            
-            if(!Directory.Exists(Global.Path_source))
+            using (Stream stream = new MemoryStream(bytes))
             {
-                Directory.CreateDirectory(Global.Path_source);
+                Image img = Image.FromStream(stream);
+
+
+                if (!Directory.Exists(Global.Path_source))
+                {
+                    Directory.CreateDirectory(Global.Path_source);
+                }
+
+                var name = Guid.NewGuid().ToString("N") + ".jpg";
+                img.Save(Global.Path_source + Global.SeparatorChar + name, ImageFormat.Jpeg);
+                var url = Global.Path_source + Global.SeparatorChar + name;
+
+                var rs = InitExifInfo(img, show);
+                img.Dispose();
+                stream.Dispose();
+                stream.Close();
+                return new
+                {
+                    name,
+                    deviceName = rs.Item3,
+                    mount = rs.Item1,
+                    xy = rs.Item2
+                };
             }
-
-            var name = Guid.NewGuid().ToString("N") + ".jpg";
-            img.Save(Global.Path_source + Global.SeparatorChar + name, ImageFormat.Jpeg);
-            var url = Global.Path_source + Global.SeparatorChar + name;
-
-            var rs = InitExifInfo(img, show);
-            img.Dispose();
-
-            return new {
-                name,
-                deviceName = rs.Item3,
-                mount = rs.Item1,
-                xy = rs.Item2
-            };
         }
 
         [HttpPost]
@@ -55,18 +59,24 @@ namespace Server.NetCore.Controllers
             BinaryReader r = new BinaryReader(file.OpenReadStream());
             r.BaseStream.Seek(0, SeekOrigin.Begin);    //将文件指针设置到文件开
             var bytes = r.ReadBytes((int)r.BaseStream.Length);
-            Stream stream = new MemoryStream(bytes);
-            Image img = Image.FromStream(stream);
-
-            if (!Directory.Exists(Global.Path_logo))
+            using (Stream stream = new MemoryStream(bytes))
             {
-                Directory.CreateDirectory(Global.Path_logo);
+                Image img = Image.FromStream(stream);
+
+                if (!Directory.Exists(Global.Path_logo))
+                {
+                    Directory.CreateDirectory(Global.Path_logo);
+                }
+
+
+                var name = Guid.NewGuid().ToString("N") + ".png";
+                img.Save(Global.Path_logo + Global.SeparatorChar + name, ImageFormat.Png);
+                img.Dispose();
+                stream.Dispose();
+                stream.Close();
+                return name;
+
             }
-
-
-            var name = Guid.NewGuid().ToString("N") + ".png";
-            img.Save(Global.Path_logo + Global.SeparatorChar + name, ImageFormat.Png);
-            return name;
         }
 
         [HttpGet]
@@ -80,6 +90,7 @@ namespace Server.NetCore.Controllers
             {
                 var bytes = new byte[sw.Length];
                 sw.Read(bytes, 0, bytes.Length);
+                sw.Dispose();
                 sw.Close();
                 
                 return new FileContentResult(bytes, "image/jpeg");
@@ -91,30 +102,7 @@ namespace Server.NetCore.Controllers
         {
             var url = Global.Path_source + Global.SeparatorChar + pic;
             Bitmap sourceImage = new Bitmap(url);
-            var img = Image.FromFile(url);
-            string datetime;
-            try
-            {
-                var dt = img.GetPropertyItem(0x0132).Value;
-                var dateTimeStr = System.Text.Encoding.ASCII.GetString(dt).Trim('\0');
-                datetime = DateTime.ParseExact(dateTimeStr, "yyyy:MM:dd HH:mm:ss", CultureInfo.InvariantCulture).ToString("yyyy.MM.dd HH:mm:ss");
-            }
-            catch (Exception ex)
-            {
-                datetime = DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss");
-            }
-
-            //var rs = InitExifInfo(url, show);
-            //deviceName = rs.Item3;
-            //mount = rs.Item1;
-            //if (!string.IsNullOrEmpty(rs.Item2))
-            //{
-            //    xy = rs.Item2;
-            //}
-            //if (!string.IsNullOrEmpty(rs.Item4))
-            //{
-            //    datetime = rs.Item4;
-            //}
+            string datetime = datetime = DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss");
 
             var Width = sourceImage.Width;
             var Height = sourceImage.Height;
@@ -127,10 +115,13 @@ namespace Server.NetCore.Controllers
                 await CreateImage.AddWaterMarkImg(watermakPath, dFileName, $@"{logo}", datetime, deviceName, sourceImage, c, mount, xy);
                 var output = Global.Path_output + Global.SeparatorChar + dFileName;
 
+                sourceImage.Dispose();
+
                 using (var sw = new FileStream(output, FileMode.Open))
                 {
                     var bytes = new byte[sw.Length];
                     sw.Read(bytes, 0, bytes.Length);
+                    sw.Dispose();
                     sw.Close();
 
                     return new FileContentResult(bytes, "image/jpeg");

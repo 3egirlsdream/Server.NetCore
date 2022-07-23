@@ -80,6 +80,12 @@ namespace JointWatermark
                 dFile = $@"{Global.Path_output}{Global.SeparatorChar}{dFile}";
                 //保存图片
                 _bitmap.Save(dFile, System.Drawing.Imaging.ImageFormat.Jpeg);
+
+                _g.Dispose();
+                _bitmap.Dispose();
+                sourceImage.Dispose();
+                waterImage.Dispose();
+                map1.Dispose();
             });
 
         }
@@ -223,7 +229,8 @@ namespace JointWatermark
             Bitmap resultImage = new Bitmap(waterWidth, waterHeight);
             Graphics g = Graphics.FromImage(resultImage);
             g.DrawImage(waterBitMap, new Rectangle(0, 0, waterWidth, waterHeight), 0, 0, waterWidth, waterHeight, GraphicsUnit.Pixel, attributes);
-
+            g.Dispose();
+            waterBitMap.Dispose();
             return resultImage;
         }
     }
