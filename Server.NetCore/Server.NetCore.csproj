@@ -29,6 +29,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="start.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="start.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

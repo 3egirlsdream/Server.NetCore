@@ -75,8 +75,5 @@ jobs:
           docker pull xulezuo/netcore
           docker run --name netcore -dit -p 4396:4396 -d xulezuo/netcore
           id=$(docker ps |grep "netcore" | awk '{print $1}')
-          docker exec -it $id /bin/sh
-          apt-get update
-          apt-get install -y --no-install-recommends libgdiplus libc6-dev
-          exit
+          docker exec -it $id /bin/sh start.sh
           docker restart $id
