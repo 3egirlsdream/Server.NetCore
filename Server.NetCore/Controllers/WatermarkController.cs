@@ -29,7 +29,6 @@ namespace Server.NetCore.Controllers
             {
                 Image img = Image.FromStream(stream);
 
-
                 if (!Directory.Exists(Global.Path_source))
                 {
                     Directory.CreateDirectory(Global.Path_source);
@@ -37,7 +36,6 @@ namespace Server.NetCore.Controllers
 
                 var name = Guid.NewGuid().ToString("N") + ".jpg";
                 img.Save(Global.Path_source + Global.SeparatorChar + name, ImageFormat.Jpeg);
-                var url = Global.Path_source + Global.SeparatorChar + name;
 
                 var rs = InitExifInfo(img, show);
                 img.Dispose();
@@ -68,7 +66,6 @@ namespace Server.NetCore.Controllers
                     Directory.CreateDirectory(Global.Path_logo);
                 }
 
-
                 var name = Guid.NewGuid().ToString("N") + ".png";
                 img.Save(Global.Path_logo + Global.SeparatorChar + name, ImageFormat.Png);
                 img.Dispose();
@@ -82,18 +79,28 @@ namespace Server.NetCore.Controllers
         [HttpGet]
         public async Task<IActionResult> Download(string file_path, string folder)
         {
-            if (!string.IsNullOrEmpty(folder))
+            try
             {
-                file_path = Global.BasePath + folder + Global.SeparatorChar + file_path;
+                if (!string.IsNullOrEmpty(folder))
+                {
+                    file_path = Global.BasePath + folder + Global.SeparatorChar + file_path;
+                }
+                using (var sw = new FileStream(file_path, FileMode.Open))
+                {
+                    var bytes = new byte[sw.Length];
+                    sw.Read(bytes, 0, bytes.Length);
+                    sw.Dispose();
+                    sw.Close();
+                    return new FileContentResult(bytes, "image/jpeg");
+                }
             }
-            using (var sw = new FileStream(file_path, FileMode.Open))
+            catch(Exception ex)
             {
-                var bytes = new byte[sw.Length];
-                sw.Read(bytes, 0, bytes.Length);
-                sw.Dispose();
-                sw.Close();
-                
-                return new FileContentResult(bytes, "image/jpeg");
+                throw ex;
+            }
+            finally
+            {
+                GC.Collect();
             }
         }
 
@@ -102,7 +109,7 @@ namespace Server.NetCore.Controllers
         {
             var url = Global.Path_source + Global.SeparatorChar + pic;
             Bitmap sourceImage = new Bitmap(url);
-            string datetime = datetime = DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss");
+            string datetime = DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss");
 
             var Width = sourceImage.Width;
             var Height = sourceImage.Height;
@@ -131,7 +138,10 @@ namespace Server.NetCore.Controllers
             {
                 throw ex;
             }
-
+            finally
+            {
+                GC.Collect();
+            }
         }
 
 
