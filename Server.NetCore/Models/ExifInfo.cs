@@ -607,12 +607,12 @@ namespace JointWatermark
                 str = str.Replace("\0", "");
                 switch (pt[i].Id)
                 {  // 设备制造商 20.  
-                    case 42036:
+                    case 0xa434:
                         {
                             list["mount"] = str;
                         }
                         break;
-                    case 36867:
+                    case 0x9003:
                         {
                             list["date"] = str;
                         }
@@ -634,14 +634,12 @@ namespace JointWatermark
                     //        list["date"] = str;
                     //    }
                     //    break;
-
                     case 0x829A: // .曝光时间  
                         {
                             str = GetValueOfType5(p.Value);
                             list["exposure"] = str;
                         }
                         break;
-
                     case 0x8827: // ISO 40.   
                         {
                             str = GetValueOfType3(p.Value);
@@ -655,20 +653,17 @@ namespace JointWatermark
                         }
                         break;
                     case 0x920a: //相片的焦距
-
                         {
                             str = GetValueOfType5A(p.Value) + "mm";
                             list["mm"] = str;
                         }
                         break;
-
                     case 0x829D: //相片的光圈值
                         {
                             str = GetValueOfType5A(p.Value);
                             list["f"] = str;
                         }
                         break;
-
                     default: break;
 
                 }
