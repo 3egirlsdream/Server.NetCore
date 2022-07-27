@@ -156,7 +156,9 @@ namespace JointWatermark
                 var font28 = (28 * fontxs);
                 font = new Font(Global.FontFamily, (int)font28, FontStyle.Bold);
                 brush = new SolidBrush(Color.Black);
-                Producer = new Node((int)(100 * xs), Params.Y);
+                //左边距系数
+                var leftWidth = (double)1 / 25 * bitmap.Width;// 100 * fontxs * 100 / 156;
+                Producer = new Node((int)(leftWidth), Params.Y);
                 point = new Point(Producer.X, Producer.Y);
                 g.DrawString(deviceName, font, brush, point);
 
@@ -164,7 +166,7 @@ namespace JointWatermark
                 font = new Font(Global.FontFamilyLight, (int)font20, FontStyle.Regular);
                 c = ColorTranslator.FromHtml("#919191");
                 brush = new SolidBrush(c);
-                Date = new Node((int)(100 * xs), XY.Y);
+                Date = new Node(Producer.X, XY.Y);
                 point = new Point(Date.X, Date.Y);
                 g.DrawString(datetime, font, brush, point);
 
