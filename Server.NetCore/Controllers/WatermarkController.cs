@@ -46,7 +46,8 @@ namespace Server.NetCore.Controllers
                     name,
                     deviceName = rs.Item3,
                     mount = rs.Item1,
-                    xy = rs.Item2
+                    xy = rs.Item2,
+                    date = rs.Item4
                 };
             }
         }
@@ -105,12 +106,15 @@ namespace Server.NetCore.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create(string pic, string logo, bool show, string xy, string mount, string deviceName)
+        public async Task<IActionResult> Create(string pic, string logo, bool show, string xy, string mount, string deviceName, string datetime)
         {
             var url = Global.Path_source + Global.SeparatorChar + pic;
             Bitmap sourceImage = new Bitmap(url);
-            string datetime = DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss");
-
+            //string datetime = DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss");
+            if (string.IsNullOrEmpty(datetime))
+            {
+                datetime = DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss");
+            }
             var Width = sourceImage.Width;
             var Height = sourceImage.Height;
             try
