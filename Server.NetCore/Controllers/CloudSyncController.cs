@@ -62,5 +62,35 @@ namespace Server.NetCore.Controllers
                 return cloud;
             }
         }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public void InsertVersion(string Client, string Path, string Version)
+        {
+            var version = new CLIENT_VERSION
+            {
+                ID = Guid.NewGuid().ToString("N").ToUpper(),
+                DATETIME = DateTime.Now,
+                CLIENT = Client,
+                PATH = Path,
+                VERSION = Version
+            };
+            using(var db = SugarContext.GetInstance())
+            {
+                db.Insertable(version).ExecuteCommand();
+            }
+        }
+
+
+        [HttpGet]
+        [AllowAnonymous]
+        public object GetVersion(string Client)
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                var result = db.Queryable<CLIENT_VERSION>().Where(c => c.CLIENT == Client).OrderBy(c => c.DATETIME, SqlSugar.OrderByType.Desc).ToList().FirstOrDefault();
+                return result;
+            }
+        }
     }
 }
