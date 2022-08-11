@@ -41,7 +41,7 @@ jobs:
         run: docker build . --file Server.NetCore/Dockerfile --tag $IMAGE_NAME
         # 登录到 dockerhub，使用 GitHub secrets 传入账号密码，密码被加密存储在 GitHub 服务器，添加方法见下图。
       - name: Log into registry
-        run: echo "${{ secrets.ACCESS_TOKEN }}" | winpty docker login -u xulezuo --password-stdin
+        run: echo "${{ secrets.ACCESS_TOKEN }}" | docker login -u xulezuo --password-stdin
 
       - name: Push image
         run: |
@@ -73,5 +73,7 @@ jobs:
           docker stop netcore
           docker rm netcore
           docker pull xulezuo/netcore
-          docker run --name netcore -dit -p 4396:4396 -d -v /app/output:/root/img xulezuo/netcore
+          docker run --name netcore -dit -p 4396:4396 -d xulezuo/netcore
           id=$(docker ps |grep "netcore" | awk '{print $1}')
+          docker exec -it $id /bin/sh start.sh
+          docker restart $id
