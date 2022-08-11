@@ -73,7 +73,5 @@ jobs:
           docker stop netcore
           docker rm netcore
           docker pull xulezuo/netcore
-          docker run --name netcore -dit -p 4396:4396 -d xulezuo/netcore
+          docker run --name netcore -dit -p 4396:4396 -d -v /app/output:/root/img xulezuo/netcore
           id=$(docker ps |grep "netcore" | awk '{print $1}')
-          docker exec -it $id /bin/sh start.sh
-          docker restart $id
