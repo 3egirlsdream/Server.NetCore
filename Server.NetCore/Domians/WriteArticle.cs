@@ -131,11 +131,48 @@ namespace DotNetCoreServer.Domians
             }
         }
 
+        public object Search(string parameter)
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                var result = db.Queryable<ARTICLE, ARTICLE, ARTICLE, SYS_USER>((a, a2, a3, su) => new
+                (
+                    JoinType.Left, a.LAST_ESSAY == a2.ID,
+                    JoinType.Left, a.NEXT_ESSAY == a3.ID,
+                    JoinType.Left, a.USER_CREATED == su.USER_NAME
+                )).OrderBy((a, a2, a3) => a.DATETIME_CREATED, OrderByType.Desc)
+                    .Where((a, a2, a3, su) =>  a.STATE == "A" 
+                    && (a.USER_CREATED == parameter 
+                    || a.CONTENT.Contains(parameter) 
+                    || a.ARTICLE_NAME.Contains(parameter) 
+                    || su.DISPLAY_NAME.Contains(parameter)
+                    ))
+                    .Select((a, a2, a3, su) => new
+                    {
+                        a.IMG_CODE,
+                        a.ID,
+                        su.DISPLAY_NAME,
+                        su.IMG,
+                        DATETIME_CREATED = a.DATETIME_CREATED.ToString("yyyy-MM-dd"),
+                        CONTENT = a.CONTENT,
+                        a.ARTICLE_NAME,
+                        a.ARTICLE_CODE,
+                        a.ARTICLE_CATEGORY,
+                        a.LAST_ESSAY,
+                        LAST_ESSAY_NAME = a2.ARTICLE_NAME,
+                        a.NEXT_ESSAY,
+                        NEXT_ESSAY_NAME = a3.ARTICLE_NAME
+                    }).ToList();
+                return result;
+
+            }
+        }
+
         public object GetArticleCategory()
         {
             using(var db = SugarContext.GetInstance())
             {
-                var res = db.Queryable<ARTICLE>().Where(x=> !string.IsNullOrEmpty(x.ARTICLE_CATEGORY)).Select(c => c.ARTICLE_CATEGORY).ToList() ;
+                var res = db.Queryable<ARTICLE>().Where(x=> !string.IsNullOrEmpty(x.ARTICLE_CATEGORY) && x.STATE == "A").Select(c => c.ARTICLE_CATEGORY).ToList() ;
                 var ls = new List<string>();
                 res.ForEach(c =>
                 {

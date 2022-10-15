@@ -182,10 +182,10 @@ namespace DotNetCoreServer
             services.AddControllers().AddHttpExceptions();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Latest);
 
-            section = Configuration.GetSection("RabbitMQ:Default");
-            var host = SecretHelper.DESDecrypt(section.GetSection("Host").Value);
-            var user = SecretHelper.DESDecrypt(section.GetSection("User").Value);
-            var password = SecretHelper.DESDecrypt(section.GetSection("Password").Value);
+            //section = Configuration.GetSection("RabbitMQ:Default");
+            //var host = SecretHelper.DESDecrypt(section.GetSection("Host").Value);
+            //var user = SecretHelper.DESDecrypt(section.GetSection("User").Value);
+            //var password = SecretHelper.DESDecrypt(section.GetSection("Password").Value);
             //services.AddRabbitMQ(new ConnectionFactory//创建连接工厂对象
             //{
             //    HostName = host,//IP地址

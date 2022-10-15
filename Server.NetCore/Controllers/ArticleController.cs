@@ -48,6 +48,10 @@ namespace DotNetCoreServer.Controllers
         [HttpGet]
         public object GetArticlesToPage(string user, string category, int startIndex, int length)
         {
+            if (string.IsNullOrEmpty(category))
+            {
+                throw new Exception("分类为空");
+            }
             var cache = _database.StringGet("all_articles");
             if (!string.IsNullOrEmpty(cache))
             {
@@ -122,6 +126,12 @@ namespace DotNetCoreServer.Controllers
             {
                 throw new Exception("请先登录");
             }
+        }
+
+        [HttpGet]
+        public object Search(string parameter)
+        {
+            return WriteArticle.Current.Search(parameter);
         }
     }
 }
