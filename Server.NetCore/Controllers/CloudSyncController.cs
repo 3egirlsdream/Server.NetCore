@@ -92,5 +92,44 @@ namespace Server.NetCore.Controllers
                 return result;
             }
         }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public void UploadPath(string Name, string Url, string Url_B)
+        {
+            var version = new CLOUD_FONT
+            {
+                ID = Guid.NewGuid().ToString("N").ToUpper(),
+                NAME = Name,
+                URL = Url,
+                URL_B = Url_B
+            };
+            using (var db = SugarContext.GetInstance())
+            {
+                var c = db.Queryable<CLOUD_FONT>().Where(c => c.NAME == Name).First();
+                if (c == null)
+                {
+                    db.Insertable(version).ExecuteCommand();
+                }
+                else
+                {
+                    c.URL = Url;
+                    c.URL_B = Url_B;
+                    db.Updateable(version).ExecuteCommand();
+                }
+            }
+        }
+
+
+        [HttpGet]
+        [AllowAnonymous]
+        public object GetFontsList()
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                var result = db.Queryable<CLOUD_FONT>().ToList();
+                return result;
+            }
+        }
     }
 }
