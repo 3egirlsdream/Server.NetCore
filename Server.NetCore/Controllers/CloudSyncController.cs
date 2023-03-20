@@ -15,6 +15,7 @@ using System.Globalization;
 using JointWatermark;
 using Server.NetCore.Models;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace Server.NetCore.Controllers
 {
@@ -129,6 +130,37 @@ namespace Server.NetCore.Controllers
             {
                 var result = db.Queryable<CLOUD_FONT>().ToList();
                 return result;
+            }
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public void ComputeUserCount(string ID)
+        {
+            using (var db = SugarContext.GetInstance())
+            {
+                var result = db.Queryable<SUBSCRIBERS>().Where(c=>c.CLIENT == "Watermark").ToList().FirstOrDefault();
+                if(result == null)
+                {
+                    var dic = new Dictionary<string, int>();
+                    dic[ID] = 1;
+                    result = new SUBSCRIBERS
+                    {
+                        ID = Guid.NewGuid().ToString("N").ToUpper(),
+                        JSON = JsonConvert.SerializeObject(dic),
+                        CLIENT = "Watermark",
+                        TOTAL = dic.Count
+                    };
+                    db.Insertable(result).ExecuteCommand();
+                }
+                else
+                {
+                    var dic = JsonConvert.DeserializeObject<Dictionary<string, int>>(result.JSON);
+                    dic[ID] = 1;
+                    result.JSON = JsonConvert.SerializeObject(dic);
+                    result.TOTAL = dic.Count;
+                    db.Updateable(result).ExecuteCommand();
+                }
             }
         }
     }
