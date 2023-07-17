@@ -66,7 +66,7 @@ namespace Server.NetCore.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public void InsertVersion(string Client, string Path, string Version)
+        public void InsertVersion(string Client, string Path, string Version, string Memo)
         {
             var version = new CLIENT_VERSION
             {
@@ -74,7 +74,8 @@ namespace Server.NetCore.Controllers
                 DATETIME = DateTime.Now,
                 CLIENT = Client,
                 PATH = Path,
-                VERSION = Version
+                VERSION = Version,
+                MEMO = Memo
             };
             using(var db = SugarContext.GetInstance())
             {
