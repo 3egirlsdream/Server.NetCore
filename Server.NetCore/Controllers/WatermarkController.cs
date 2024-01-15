@@ -14,13 +14,15 @@ using System.IO;
 using System.Globalization;
 using JointWatermark;
 using Server.NetCore.Models;
+using Newtonsoft.Json;
+using DotNetCoreServer.Models;
 
 namespace Server.NetCore.Controllers
 {
     public class WatermarkController : BaseController
     {
         [HttpPost]
-        public bool Upload(IFormFile file, [FromForm]string desc, [FromForm] string userId, [FromForm]string watermarkId)
+        public bool Upload(IFormFile file, [FromForm]string? desc, [FromForm] string userId, [FromForm]string watermarkId)
         {
             BinaryReader r = new BinaryReader(file.OpenReadStream());
             r.BaseStream.Seek(0, SeekOrigin.Begin);    //将文件指针设置到文件开
@@ -101,7 +103,7 @@ namespace Server.NetCore.Controllers
         }
 
         [HttpGet]
-        public object GetWatermarks(string userId, int start, int length, string type)
+        public object GetWatermarks(string? userId, int start, int length, string type)
         {
 
             try
@@ -115,12 +117,18 @@ namespace Server.NetCore.Controllers
                     .OrderByIF(type == "countDesc", x => x.DOWNLOAD_TIMES, SqlSugar.OrderByType.Desc)
                     .ToPageList(start, length, ref total);
 
-                var files = new List<FileContentResult>();
+                var files = new List<object>();
                 foreach (var l in list)
                 {
                     if (l.RESOURCE != null)
                     {
-                        files.Add(File(l.RESOURCE, "application/octet-stream", $"{l.ID}.zip"));
+                        files.Add(new
+                        {
+                            File = File(l.RESOURCE, "application/octet-stream", $"{l.ID}.zip"),
+                            l.ID,
+                            l.DOWNLOAD_TIMES,
+                            l.DESC
+                        });
                     }
                 }
                 return new
@@ -153,9 +161,12 @@ namespace Server.NetCore.Controllers
         }
 
         [HttpPost]
-        public void SignUp([FromBody] Object value)
+        public SYS_USER SignUp([FromBody] Object value)
         {
             DotNetCoreServer.Domains.User.Current.RegistUser(value);
+            var res = JsonConvert.DeserializeObject<dynamic>(value.ToString());
+            string username = res.username;
+            return DotNetCoreServer.Domains.User.Current.GetUserInfo(username);
         }
     }
 }

@@ -43,8 +43,9 @@ namespace DotNetCoreServer.Domains
                     }
                     else
                     {
-                        if(res.pkid is string pkid && !string.IsNullOrEmpty(pkid))
+                        if(res.pkid != null)
                         {
+                            string pkid = Convert.ToString(res.pkid);
                             var exsist = db.Queryable<SYS_USER>().Any(c => c.PK_ID == pkid);
                             if (exsist)
                             {
@@ -92,7 +93,7 @@ namespace DotNetCoreServer.Domains
                     }
 
                     var res = db.Queryable<SYS_USER>()
-                        .Where(e => e.USER_NAME == user && e.PASSWORD == pwd).Select(c => new { c.IMG, c.ID, c.DISPLAY_NAME }).First();
+                        .Where(e => e.USER_NAME == user && e.PASSWORD == pwd).Select(c => new { c.IMG, c.ID, c.DISPLAY_NAME, c.USER_NAME }).First();
 
                     if (res != null)
                     {
@@ -117,7 +118,7 @@ namespace DotNetCoreServer.Domains
            
         }
 
-        public object GetUserInfo(string username)
+        public SYS_USER GetUserInfo(string username)
         {
             using (var db = SugarContext.GetInstance())
             {
