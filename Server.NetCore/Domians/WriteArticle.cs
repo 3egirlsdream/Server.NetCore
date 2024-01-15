@@ -1,8 +1,8 @@
 ﻿using DotNetCoreServer.Models;
 using Newtonsoft.Json.Linq;
+using Server.NetCore.Models;
 using SqlSugar;
 using StackExchange.Redis;
-using SugarModel;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

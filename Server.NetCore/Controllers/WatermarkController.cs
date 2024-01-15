@@ -14,74 +14,81 @@ using System.IO;
 using System.Globalization;
 using JointWatermark;
 using Server.NetCore.Models;
-using SixLabors.ImageSharp;
 
 namespace Server.NetCore.Controllers
 {
     public class WatermarkController : BaseController
     {
         [HttpPost]
-        public object Upload(IFormFile file, bool show)
+        public bool Upload(IFormFile file, [FromForm]string desc, [FromForm] string userId, [FromForm]string watermarkId)
         {
             BinaryReader r = new BinaryReader(file.OpenReadStream());
             r.BaseStream.Seek(0, SeekOrigin.Begin);    //将文件指针设置到文件开
             var bytes = r.ReadBytes((int)r.BaseStream.Length);
-
-            if (!Directory.Exists(Global.Path_source))
+            using var db = SugarContext.GetInstance();
+            var exsist = db.Queryable<WATERMARK_PROPERTY>().Any(c => c.ID == watermarkId);
+            if(exsist)
             {
-                Directory.CreateDirectory(Global.Path_source);
+                throw new Exception("当前模板已存在。");
             }
-            var rs = Global.GetThumbnailPath(bytes);
-            var name = Guid.NewGuid().ToString("N") + ".jpg";
-            var p = Global.Path_source + Global.SeparatorChar + name;
-            using (var img = Image.Load(file.OpenReadStream()))
+            var water = new WATERMARK_PROPERTY
             {
-                img.Save(p);
-            }
-            return new
-            {
-                name,
-                deviceName = rs.left1,
-                mount = rs.right1,
-                xy = rs.right2,
-                date = rs.left2
+                ID = watermarkId,
+                DATETIME_CREATED = DateTime.Now,
+                DOWNLOAD_TIMES = 0,
+                DESC = desc,
+                RESOURCE = bytes,
+                USER_ID = userId,
             };
+            db.Insertable(water).ExecuteCommand();
+            return true;
+
         }
 
         [HttpPost]
-        public string Uploadlogo(IFormFile file)
+        public bool Uploadlogo(IFormFile file, string desc, string userId, string watermarkId)
         {
-            var stm = file.OpenReadStream();
-            using (var img = Image.Load(stm))
+            BinaryReader r = new BinaryReader(file.OpenReadStream());
+            r.BaseStream.Seek(0, SeekOrigin.Begin);    //将文件指针设置到文件开
+            var bytes = r.ReadBytes((int)r.BaseStream.Length);
+            using var db = SugarContext.GetInstance();
+            var exsist = db.Queryable<WATERMARK_PROPERTY>().Where(c => c.ID == watermarkId && c.USER_ID == userId).ToList().FirstOrDefault();
+            if (exsist == null)
             {
-                if (!Directory.Exists(Global.Path_logo))
+                exsist = new WATERMARK_PROPERTY
                 {
-                    Directory.CreateDirectory(Global.Path_logo);
-                }
-
-                var name = Guid.NewGuid().ToString("N") + ".png";
-                img.Save(Global.Path_logo + Global.SeparatorChar + name);
-                return name;
+                    ID = watermarkId,
+                    DATETIME_CREATED = DateTime.Now,
+                    DOWNLOAD_TIMES = 0,
+                    DESC = desc,
+                    RESOURCE = bytes,
+                    USER_ID = userId,
+                };
+                db.Insertable(exsist).ExecuteCommand();
             }
+            else
+            {
+                exsist.DESC = desc;
+                exsist.RESOURCE = bytes;
+                db.Updateable(exsist).ExecuteCommand();
+            }
+            return true;
         }
 
         [HttpGet]
-        public async Task<IActionResult> Download(string file_path, string folder)
+        public IActionResult Download(string watermarkId)
         {
             try
             {
-                if (!string.IsNullOrEmpty(folder))
+                using var db = SugarContext.GetInstance();
+                var watermark = db.Queryable<WATERMARK_PROPERTY>().Where(c => c.ID == watermarkId).ToList().FirstOrDefault();
+                if(watermark == null)
                 {
-                    file_path = Global.BasePath + folder + Global.SeparatorChar + file_path;
+                    throw new Exception("文件不存在!");
                 }
-                using (var sw = new FileStream(file_path, FileMode.Open))
-                {
-                    var bytes = new byte[sw.Length];
-                    sw.Read(bytes, 0, bytes.Length);
-                    sw.Dispose();
-                    sw.Close();
-                    return new FileContentResult(bytes, "image/jpeg");
-                }
+
+                return File(watermark.RESOURCE, "application/octet-stream", $"{watermarkId}.zip");
+
             }
             catch (Exception ex)
             {
@@ -94,33 +101,33 @@ namespace Server.NetCore.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create(string pic, string logo, bool show, string xy, string mount, string deviceName, string datetime)
+        public object GetWatermarks(string userId, int start, int length, string type)
         {
-            var url = Global.Path_source + Global.SeparatorChar + pic;
 
             try
             {
-                using (var img = Image.Load(url))
+                int total = 0;
+                using var db = SugarContext.GetInstance();
+                var list = db.Queryable<WATERMARK_PROPERTY>().WhereIF(!string.IsNullOrEmpty(userId), x => x.USER_ID == userId)
+                    .OrderByIF(type == "timeAsc", x=>x.DATETIME_CREATED, SqlSugar.OrderByType.Asc)
+                    .OrderByIF(type == "timeDesc", x => x.DATETIME_CREATED, SqlSugar.OrderByType.Desc)
+                    .OrderByIF(type == "countAsc", x => x.DOWNLOAD_TIMES, SqlSugar.OrderByType.Asc)
+                    .OrderByIF(type == "countDesc", x => x.DOWNLOAD_TIMES, SqlSugar.OrderByType.Desc)
+                    .ToPageList(start, length, ref total);
+
+                var files = new List<FileContentResult>();
+                foreach (var l in list)
                 {
-                    var config = new ImageProperties(url, pic + ".jpg");
-                    config.Config.LeftPosition1 = deviceName;
-                    config.Config.LeftPosition2 = datetime;
-                    config.Config.RightPosition1 = mount;
-                    config.Config.RightPosition2 = xy;
-                    config.Config.LogoName = logo;
-                    var result = await Commons.ImagesHelper.Current.MergeWatermark(config);
-                    var outputPath = $@"{Global.Path_output}{Global.SeparatorChar}{DateTime.Now.ToString("yyyyMMddHHmmss")}.jpg";
-                    result.SaveAsJpeg(outputPath);
-                    result.Dispose();
-                    using (var sw = new FileStream(outputPath, FileMode.Open))
+                    if (l.RESOURCE != null)
                     {
-                        var bytes = new byte[sw.Length];
-                        sw.Read(bytes, 0, bytes.Length);
-                        sw.Dispose();
-                        sw.Close();
-                        return new FileContentResult(bytes, "image/jpeg");
+                        files.Add(File(l.RESOURCE, "application/octet-stream", $"{l.ID}.zip"));
                     }
                 }
+                return new
+                {
+                    Files = files,
+                    Total = total
+                };
             }
             catch (Exception ex)
             {
@@ -134,7 +141,6 @@ namespace Server.NetCore.Controllers
 
 
         [HttpGet]
-        [AllowAnonymous]
         public object Login(string user, string pwd)
         {
             return DotNetCoreServer.Domains.User.Current.Login(user, pwd);

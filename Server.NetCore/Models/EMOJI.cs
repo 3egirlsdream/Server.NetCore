@@ -1,32 +1,75 @@
-﻿using SqlSugar;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
+using SqlSugar;
 
-namespace DotNetCoreServer.Models
+namespace Server.NetCore.Models
 {
-    public class EMOJI
+    ///<summary>
+    ///
+    ///</summary>
+    [SugarTable("EMOJI")]
+    public partial class EMOJI
     {
-        public EMOJI()
-        {
-            this.STATE = "A";
-        }
-        public EMOJI(string id)
-        {
-            this.ID = id;
-            this.STATE = "A";
-        }
-        [SugarColumn(IsPrimaryKey = true)]
-        public string ID { get; set; }
-        public string USER_CREATED { get; set; }
-        public DateTime? DATETIME_CREATED { get; set; }
-        public string USER_MODIFIED { get; set; }
-        public DateTime? DATETIME_MODIFIED { get; set; }
-        public string STATE { get; set; }
-        public string GROUP_ID { get; set; }
-        public string URLS { get; set; }
+           public EMOJI(){
+
+
+           }
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:False
+           /// </summary>           
+           public DateTime DATETIME_CREATED {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:True
+           /// </summary>           
+           public DateTime? DATETIME_MODIFIED {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:True
+           /// </summary>           
+           public string GROUP_ID {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:False
+           /// </summary>           
+           public string ID {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:False
+           /// </summary>           
+           public string STATE {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:True
+           /// </summary>           
+           public string URLS {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:False
+           /// </summary>           
+           public string USER_CREATED {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:True
+           /// </summary>           
+           public string USER_MODIFIED {get;set;}
+
     }
 }
-﻿
-

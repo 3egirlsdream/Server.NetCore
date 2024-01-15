@@ -1,19 +1,76 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
+using SqlSugar;
 
-namespace DotNetCoreServer.Models
+namespace Server.NetCore.Models
 {
-    internal partial class I_LIKE
+    ///<summary>
+    ///
+    ///</summary>
+    [SugarTable("I_LIKE")]
+    public partial class I_LIKE
     {
-        public string ID { get; set; }
-        public DateTime DATETIME_CREATED { get; set; }
-        public string USER_CREATED { get; set; }
-        public DateTime? DATETIME_MODIFIED { get; set; }
-        public string USER_MODIFIED { get; set; }
-        public string STATE { get; set; }
-        public string MUSIC_NAME { get; set; }
-        public string USER_CODE { get; set; }
+           public I_LIKE(){
+
+
+           }
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:False
+           /// </summary>           
+           public DateTime DATETIME_CREATED {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:True
+           /// </summary>           
+           public DateTime? DATETIME_MODIFIED {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:False
+           /// </summary>           
+           [SugarColumn(IsPrimaryKey=true)]
+           public string ID {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:False
+           /// </summary>           
+           public string MUSIC_NAME {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:False
+           /// </summary>           
+           public string STATE {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:False
+           /// </summary>           
+           public string USER_CODE {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:False
+           /// </summary>           
+           public string USER_CREATED {get;set;}
+
+           /// <summary>
+           /// Desc:
+           /// Default:
+           /// Nullable:True
+           /// </summary>           
+           public string USER_MODIFIED {get;set;}
+
     }
 }

@@ -35,45 +35,45 @@ namespace DotNetCoreServer
                 InitKeyType = InitKeyType.Attribute //从实体特性中读取主键自增列信息
             });
 
-            var mq = new RabbitMQDomain();
-            db.Aop.OnLogExecuted = (sql, pars) => //SQL执行完事件
-            {
-                foreach (var p in pars)
-                {
-                    string s = "";
-                    if (p.DbType == System.Data.DbType.String)
-                    {
-                        s = $"\'{p.Value}\'";
-                    }
-                    else if (p.DbType == System.Data.DbType.DateTime || p.DbType == System.Data.DbType.Date || p.DbType == System.Data.DbType.DateTime2)
-                    {
-                        if (string.IsNullOrEmpty(Convert.ToString(p.Value)))
-                        {
-                            s = $"\'{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}\'";
-                        }
-                        else
-                        {
-                            var dt = Convert.ToDateTime(p.Value);
-                            s = $"\'{dt.ToString("yyyy-MM-dd HH:mm:ss")}\'";
-                        }
-                    }
-                    else
-                    {
-                        s = Convert.ToString(p.Value);
-                    }
-                    if (string.IsNullOrEmpty(s)) s = "\'\'";
-                    sql = sql.Replace(p.ParameterName, s);
-                }
-                mq.Producter(sql);
-            };
-            try
-            {
-                db.Open();
-            }
-            catch
-            {
-                db = GetInstance2();
-            }
+            //var mq = new RabbitMQDomain();
+            //db.Aop.OnLogExecuted = (sql, pars) => //SQL执行完事件
+            //{
+            //    foreach (var p in pars)
+            //    {
+            //        string s = "";
+            //        if (p.DbType == System.Data.DbType.String)
+            //        {
+            //            s = $"\'{p.Value}\'";
+            //        }
+            //        else if (p.DbType == System.Data.DbType.DateTime || p.DbType == System.Data.DbType.Date || p.DbType == System.Data.DbType.DateTime2)
+            //        {
+            //            if (string.IsNullOrEmpty(Convert.ToString(p.Value)))
+            //            {
+            //                s = $"\'{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}\'";
+            //            }
+            //            else
+            //            {
+            //                var dt = Convert.ToDateTime(p.Value);
+            //                s = $"\'{dt.ToString("yyyy-MM-dd HH:mm:ss")}\'";
+            //            }
+            //        }
+            //        else
+            //        {
+            //            s = Convert.ToString(p.Value);
+            //        }
+            //        if (string.IsNullOrEmpty(s)) s = "\'\'";
+            //        sql = sql.Replace(p.ParameterName, s);
+            //    }
+            //    mq.Producter(sql);
+            //};
+            //try
+            //{
+            //    db.Open();
+            //}
+            //catch
+            //{
+            //    db = GetInstance2();
+            //}
             return db;
         }
 

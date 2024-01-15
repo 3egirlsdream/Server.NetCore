@@ -2,6 +2,7 @@
 using DotNetCoreServer.Common;
 using DotNetCoreServer.Models;
 using Microsoft.AspNetCore.Mvc;
+using Server.NetCore.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

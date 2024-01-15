@@ -1,6 +1,7 @@
 ﻿using DotNetCoreServer.Domians;
 using DotNetCoreServer.Models;
 using Newtonsoft.Json;
+using Server.NetCore.Models;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
@@ -36,12 +37,21 @@ namespace DotNetCoreServer.Domains
                             info.DISPLAY_NAME = res.displayname;
                             info.PASSWORD = res.password;
                             info.IMG = res.img;
+                            info.PK_ID = res.pkid;
                             db.Updateable(info).ExecuteCommand();
                         }
                     }
                     else
                     {
-
+                        if(res.pkid is string pkid && !string.IsNullOrEmpty(pkid))
+                        {
+                            var exsist = db.Queryable<SYS_USER>().Any(c => c.PK_ID == pkid);
+                            if (exsist)
+                            {
+                                throw new Exception("当前设备已注册账号，每台设备只能注册一个账号");
+                            }
+                        }
+                        
                         info = new SYS_USER
                         {
                             ID = Guid.NewGuid().ToString().ToUpper(),
@@ -51,8 +61,9 @@ namespace DotNetCoreServer.Domains
                             USER_NAME = res.username,
                             DISPLAY_NAME = res.displayname,
                             PASSWORD = res.password,
-                            IMG = res.img
-                        };
+                            IMG = res.img,
+                            PK_ID = res.pkid
+                    };
 
                         db.Insertable(info).ExecuteCommand();
                     }
