@@ -25,10 +25,14 @@ namespace DotNetCoreServer.Controllers
 
 
         [HttpGet]
-        public object GetToken()
+        public object GetToken(string? key)
         {
             PutPolicy putPolicy = new PutPolicy();
             putPolicy.Scope = "oomusic";
+            if (!string.IsNullOrEmpty(key))
+            {
+                putPolicy.Scope += $":{key}";
+            }
             putPolicy.SetExpires(3600);
             putPolicy.FsizeLimit = 20971520;
             putPolicy.InsertOnly = 0;
