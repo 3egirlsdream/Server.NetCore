@@ -63,7 +63,9 @@ namespace Server.NetCore.Models
            /// Default:
            /// Nullable:False
            /// </summary>           
-           public string USER_ID {get;set;}
+           public string USER_ID {get;set; }
+        public string CDN_PATH { get; set; }
+        public int COINS { get; set; }
 
     }
 }

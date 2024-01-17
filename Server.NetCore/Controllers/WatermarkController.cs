@@ -16,17 +16,15 @@ using JointWatermark;
 using Server.NetCore.Models;
 using Newtonsoft.Json;
 using DotNetCoreServer.Models;
+using System.Drawing;
 
 namespace Server.NetCore.Controllers
 {
     public class WatermarkController : BaseController
     {
         [HttpPost]
-        public bool Upload(IFormFile file, [FromForm]string? desc, [FromForm] string userId, [FromForm]string watermarkId)
+        public bool Upload([FromForm] string? path, [FromForm]string? desc, [FromForm] string userId, [FromForm]string watermarkId, [FromForm] string? coins)
         {
-            BinaryReader r = new BinaryReader(file.OpenReadStream());
-            r.BaseStream.Seek(0, SeekOrigin.Begin);    //将文件指针设置到文件开
-            var bytes = r.ReadBytes((int)r.BaseStream.Length);
             using var db = SugarContext.GetInstance();
             var exsist = db.Queryable<WATERMARK_PROPERTY>().Any(c => c.ID == watermarkId);
             if(exsist)
@@ -39,8 +37,9 @@ namespace Server.NetCore.Controllers
                 DATETIME_CREATED = DateTime.Now,
                 DOWNLOAD_TIMES = 0,
                 DESC = desc,
-                RESOURCE = bytes,
+                CDN_PATH = path,
                 USER_ID = userId,
+                COINS = Convert.ToInt32(coins ?? "0")
             };
             db.Insertable(water).ExecuteCommand();
             return true;
@@ -48,11 +47,8 @@ namespace Server.NetCore.Controllers
         }
 
         [HttpPost]
-        public bool Uploadlogo(IFormFile file, string desc, string userId, string watermarkId)
+        public bool EditWatermark([FromForm] string? path, [FromForm] string? desc, [FromForm] string userId, [FromForm] string watermarkId, [FromForm] string? coins)
         {
-            BinaryReader r = new BinaryReader(file.OpenReadStream());
-            r.BaseStream.Seek(0, SeekOrigin.Begin);    //将文件指针设置到文件开
-            var bytes = r.ReadBytes((int)r.BaseStream.Length);
             using var db = SugarContext.GetInstance();
             var exsist = db.Queryable<WATERMARK_PROPERTY>().Where(c => c.ID == watermarkId && c.USER_ID == userId).ToList().FirstOrDefault();
             if (exsist == null)
@@ -63,15 +59,17 @@ namespace Server.NetCore.Controllers
                     DATETIME_CREATED = DateTime.Now,
                     DOWNLOAD_TIMES = 0,
                     DESC = desc,
-                    RESOURCE = bytes,
+                    CDN_PATH = path,
                     USER_ID = userId,
+                    COINS = Convert.ToInt32(coins ?? "0")
                 };
                 db.Insertable(exsist).ExecuteCommand();
             }
             else
             {
                 exsist.DESC = desc;
-                exsist.RESOURCE = bytes;
+                exsist.CDN_PATH = path;
+                exsist.COINS = Convert.ToInt32(coins ?? "0");
                 db.Updateable(exsist).ExecuteCommand();
             }
             return true;
@@ -117,23 +115,9 @@ namespace Server.NetCore.Controllers
                     .OrderByIF(type == "countDesc", x => x.DOWNLOAD_TIMES, SqlSugar.OrderByType.Desc)
                     .ToPageList(start, length, ref total);
 
-                var files = new List<object>();
-                foreach (var l in list)
-                {
-                    if (l.RESOURCE != null)
-                    {
-                        files.Add(new
-                        {
-                            File = File(l.RESOURCE, "application/octet-stream", $"{l.ID}.zip"),
-                            l.ID,
-                            l.DOWNLOAD_TIMES,
-                            l.DESC
-                        });
-                    }
-                }
                 return new
                 {
-                    Files = files,
+                    Data = list,
                     Total = total
                 };
             }
