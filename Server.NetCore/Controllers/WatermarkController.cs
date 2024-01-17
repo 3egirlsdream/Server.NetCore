@@ -23,25 +23,32 @@ namespace Server.NetCore.Controllers
     public class WatermarkController : BaseController
     {
         [HttpPost]
-        public bool Upload([FromForm] string? path, [FromForm]string? desc, [FromForm] string userId, [FromForm]string watermarkId, [FromForm] string? coins)
+        public bool Upload([FromForm] string? path, [FromForm] string? desc, [FromForm] string userId, [FromForm] string watermarkId, [FromForm] string? coins)
         {
             using var db = SugarContext.GetInstance();
-            var exsist = db.Queryable<WATERMARK_PROPERTY>().Any(c => c.ID == watermarkId);
-            if(exsist)
+            var exsist = db.Queryable<WATERMARK_PROPERTY>().Where(c => c.ID == watermarkId).ToList().FirstOrDefault();
+            if (exsist != null)
             {
-                throw new Exception("当前模板已存在。");
+                exsist.DESC = desc;
+                exsist.CDN_PATH = path;
+                exsist.COINS = Convert.ToInt32(coins ?? "0");
+                db.Updateable(exsist).ExecuteCommand();
             }
-            var water = new WATERMARK_PROPERTY
+            else
             {
-                ID = watermarkId,
-                DATETIME_CREATED = DateTime.Now,
-                DOWNLOAD_TIMES = 0,
-                DESC = desc,
-                CDN_PATH = path,
-                USER_ID = userId,
-                COINS = Convert.ToInt32(coins ?? "0")
-            };
-            db.Insertable(water).ExecuteCommand();
+                exsist = new WATERMARK_PROPERTY
+                {
+                    ID = watermarkId,
+                    DATETIME_CREATED = DateTime.Now,
+                    DOWNLOAD_TIMES = 0,
+                    DESC = desc,
+                    CDN_PATH = path,
+                    USER_ID = userId,
+                    COINS = Convert.ToInt32(coins ?? "0")
+                };
+                db.Insertable(exsist).ExecuteCommand();
+            }
+
             return true;
 
         }
