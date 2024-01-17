@@ -83,7 +83,7 @@ namespace Server.NetCore.Controllers
         }
 
         [HttpGet]
-        public IActionResult Download(string watermarkId)
+        public bool Download(string watermarkId)
         {
             try
             {
@@ -94,8 +94,9 @@ namespace Server.NetCore.Controllers
                     throw new Exception("文件不存在!");
                 }
 
-                return File(watermark.RESOURCE, "application/octet-stream", $"{watermarkId}.zip");
-
+                watermark.DOWNLOAD_TIMES += 1;
+                db.Updateable(watermark).ExecuteCommand();
+                return true;
             }
             catch (Exception ex)
             {
