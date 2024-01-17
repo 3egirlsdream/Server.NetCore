@@ -30,6 +30,8 @@ namespace DotNetCoreServer.Controllers
             PutPolicy putPolicy = new PutPolicy();
             putPolicy.Scope = "oomusic";
             putPolicy.SetExpires(3600);
+            putPolicy.FsizeLimit = 20971520;
+            putPolicy.InsertOnly = 0;
             return SignWithData(putPolicy.ToJsonString());
         }
 
