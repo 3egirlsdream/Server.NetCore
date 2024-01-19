@@ -29,7 +29,10 @@ namespace Server.NetCore.Controllers
             var exsist = db.Queryable<WATERMARK_PROPERTY>().Where(c => c.ID == watermarkId).ToList().FirstOrDefault();
             if (exsist != null)
             {
-                exsist.DESC = desc;
+                if (!string.IsNullOrEmpty(desc))
+                {
+                    exsist.DESC = desc;
+                }
                 exsist.CDN_PATH = path;
                 exsist.COINS = Convert.ToInt32(coins ?? "0");
                 db.Updateable(exsist).ExecuteCommand();
