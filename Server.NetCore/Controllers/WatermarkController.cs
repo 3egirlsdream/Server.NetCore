@@ -29,6 +29,10 @@ namespace Server.NetCore.Controllers
             var exsist = db.Queryable<WATERMARK_PROPERTY>().Where(c => c.ID == watermarkId).ToList().FirstOrDefault();
             if (exsist != null)
             {
+                if (userId != exsist.USER_ID)
+                {
+                    throw new Exception("模板已存在，不能上次不是自己所有的模板");
+                }
                 if (!string.IsNullOrEmpty(desc))
                 {
                     exsist.DESC = desc;
@@ -162,6 +166,39 @@ namespace Server.NetCore.Controllers
             var res = JsonConvert.DeserializeObject<dynamic>(value.ToString());
             string username = res.username;
             return DotNetCoreServer.Domains.User.Current.GetUserInfo(username);
+        }
+
+        [HttpGet]
+        public object TemplateIsExsist(string watermarkId, string? userId)
+        {
+            try
+            {
+                bool exsist = true;
+                bool self = false;
+                using var db = SugarContext.GetInstance();
+                var watermark = db.Queryable<WATERMARK_PROPERTY>().Where(c => c.ID == watermarkId).ToList().FirstOrDefault();
+                if (watermark == null)
+                {
+                    exsist = false;
+                }
+                else if(watermark.USER_ID == userId)
+                {
+                    self = true;
+                }
+                return new
+                {
+                    exsist,
+                    self
+                };
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                GC.Collect();
+            }
         }
     }
 }
