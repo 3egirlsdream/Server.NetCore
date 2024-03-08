@@ -100,5 +100,9 @@ namespace Server.NetCore.Models
            /// </summary>           
            public string USER_NAME {get;set;}
 
+        public DateTime? EXPIRE_DATE { get;set;}
+        public DateTime? LAST_LOGIN_DATE { get;set;}    
+        public int LOGIN_TIMES { get;set;}
+
     }
 }

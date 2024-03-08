@@ -67,5 +67,10 @@ namespace Server.NetCore.Models
         public string CDN_PATH { get; set; }
         public int COINS { get; set; }
 
+        /// <summary>
+        /// 0 no, 1 yes
+        /// </summary>
+        public int RECOMMEND {  get; set; }
+
     }
 }

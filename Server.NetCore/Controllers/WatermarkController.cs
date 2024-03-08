@@ -200,5 +200,18 @@ namespace Server.NetCore.Controllers
                 GC.Collect();
             }
         }
-    }
+
+
+        [HttpGet]
+        public void UpdateRecommend(string watermarkId)
+        {
+            using var db = SugarContext.GetInstance();
+            var watermark = db.Queryable<WATERMARK_PROPERTY>().Where(c => c.ID == watermarkId).ToList().FirstOrDefault();
+            if (watermark != null)
+            {
+                watermark.RECOMMEND = 1;
+                db.Updateable(watermark).ExecuteCommand();
+            }
+        }
+	}
 }
