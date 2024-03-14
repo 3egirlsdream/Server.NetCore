@@ -83,6 +83,21 @@ namespace Server.NetCore.Controllers
             }
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public void UpdateVersion(string Client, string Version, string Memo)
+        {
+            using var db = SugarContext.GetInstance();
+            var result = db.Queryable<CLIENT_VERSION>().Where(c => c.CLIENT == Client).OrderBy(c => c.DATETIME, SqlSugar.OrderByType.Desc).ToList().FirstOrDefault();
+            if(result != null)
+            {
+                result.DATETIME = DateTime.Now;
+                result.MEMO = Memo;
+                result.VERSION = Version;
+                db.Updateable(result).ExecuteCommand();
+            }
+        }
+
 
         [HttpGet]
         [AllowAnonymous]

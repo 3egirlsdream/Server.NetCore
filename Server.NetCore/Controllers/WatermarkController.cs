@@ -17,6 +17,7 @@ using Server.NetCore.Models;
 using Newtonsoft.Json;
 using DotNetCoreServer.Models;
 using System.Drawing;
+using SqlSugar;
 
 namespace Server.NetCore.Controllers
 {
@@ -96,7 +97,7 @@ namespace Server.NetCore.Controllers
             {
                 using var db = SugarContext.GetInstance();
                 var watermark = db.Queryable<WATERMARK_PROPERTY>().Where(c => c.ID == watermarkId).ToList().FirstOrDefault();
-                if(watermark == null)
+                if (watermark == null)
                 {
                     throw new Exception("文件不存在!");
                 }
@@ -123,11 +124,28 @@ namespace Server.NetCore.Controllers
             {
                 int total = 0;
                 using var db = SugarContext.GetInstance();
-                var list = db.Queryable<WATERMARK_PROPERTY>().WhereIF(!string.IsNullOrEmpty(userId), x => x.USER_ID == userId)
-                    .OrderByIF(type == "timeAsc", x=>x.DATETIME_CREATED, SqlSugar.OrderByType.Asc)
+                var list = db.Queryable<WATERMARK_PROPERTY, SYS_USER>((x, s) => new
+                (
+                    JoinType.Inner, x.USER_ID == s.ID
+                ))
+                    .WhereIF(!string.IsNullOrEmpty(userId), x => x.USER_ID == userId)
+                    .OrderByIF(type == "timeAsc", x => x.DATETIME_CREATED, SqlSugar.OrderByType.Asc)
                     .OrderByIF(type == "timeDesc", x => x.DATETIME_CREATED, SqlSugar.OrderByType.Desc)
                     .OrderByIF(type == "countAsc", x => x.DOWNLOAD_TIMES, SqlSugar.OrderByType.Asc)
                     .OrderByIF(type == "countDesc", x => x.DOWNLOAD_TIMES, SqlSugar.OrderByType.Desc)
+                    .Select((x, s)=> new
+                    {
+                        x.USER_ID,
+                        x.DATETIME_CREATED,
+                        x.DOWNLOAD_TIMES,
+                        x.ID,
+                        x.CDN_PATH,
+                        x.DESC,
+                        x.CONTENT,
+                        x.COINS,
+                        x.RECOMMEND,
+                        s.DISPLAY_NAME
+                    })
                     .ToPageList(start, length, ref total);
 
                 return new
@@ -181,7 +199,7 @@ namespace Server.NetCore.Controllers
                 {
                     exsist = false;
                 }
-                else if(watermark.USER_ID == userId)
+                else if (watermark.USER_ID == userId)
                 {
                     self = true;
                 }
@@ -209,9 +227,53 @@ namespace Server.NetCore.Controllers
             var watermark = db.Queryable<WATERMARK_PROPERTY>().Where(c => c.ID == watermarkId).ToList().FirstOrDefault();
             if (watermark != null)
             {
-                watermark.RECOMMEND = 1;
+                watermark.RECOMMEND = watermark.RECOMMEND == 1 ? 0 : 1;
                 db.Updateable(watermark).ExecuteCommand();
             }
         }
-	}
+
+
+        [HttpGet]
+        public object GetILike(string userId)
+        {
+            using var db = SugarContext.GetInstance();
+            var watermarks = db.Queryable<SYS_USER_LIKE, WATERMARK_PROPERTY>((s, w) => new(
+                JoinType.Inner, s.RESOURCE_ID == w.ID
+                )).Where(s => s.USER_ID == userId).Select((s, w) => w).ToList();
+            return watermarks;
+        }
+
+        [HttpGet]
+        public bool AddILike(string userId, string watermarkId)
+        {
+            using var db = SugarContext.GetInstance();
+            var exsist = db.Queryable<SYS_USER_LIKE>().Where(x=>x.USER_ID == userId && x.RESOURCE_ID == watermarkId).Any();
+            if(!exsist)
+            {
+                var item = new SYS_USER_LIKE()
+                {
+                    ID = Guid.NewGuid().ToString("N").ToUpper(),
+                    RESOURCE_ID = watermarkId,
+                    USER_ID = userId
+                };
+                db.Insertable(item).ExecuteCommand();
+            }
+            return exsist;
+        }
+
+
+        [HttpGet]
+        public bool DeleteILike(string userId, string watermarkId)
+        {
+            using var db = SugarContext.GetInstance();
+            var exsist = db.Queryable<SYS_USER_LIKE>().Where(x => x.USER_ID == userId && x.RESOURCE_ID == watermarkId).ToList().FirstOrDefault();
+            if (exsist != null)
+            {
+                db.Deleteable(exsist).ExecuteCommand();
+            }
+            return true;
+        }
+
+
+    }
 }
