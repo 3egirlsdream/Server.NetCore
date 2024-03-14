@@ -1,23 +1,11 @@
 ﻿using DotNetCoreServer;
 using DotNetCoreServer.Common;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using DotNetCoreServer.Domains;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-//using System.Drawing;
-//using System.Drawing.Imaging;
-using System.IO;
-using System.Globalization;
-using JointWatermark;
-using Server.NetCore.Models;
 using Newtonsoft.Json;
-using DotNetCoreServer.Models;
-using System.Drawing;
+using Server.NetCore.Models;
 using SqlSugar;
+using System;
+using System.Linq;
 
 namespace Server.NetCore.Controllers
 {
@@ -239,7 +227,16 @@ namespace Server.NetCore.Controllers
             using var db = SugarContext.GetInstance();
             var watermarks = db.Queryable<SYS_USER_LIKE, WATERMARK_PROPERTY>((s, w) => new(
                 JoinType.Inner, s.RESOURCE_ID == w.ID
-                )).Where(s => s.USER_ID == userId).Select((s, w) => w).ToList();
+                )).Where(s => s.USER_ID == userId).Select((s, w) => new
+                {
+                    WatermarkId = w.ID,
+                    UserId= w.USER_ID,
+                    Desc = w.DESC,
+                    Coins = w.COINS,
+                    DownloadTimes = w.DOWNLOAD_TIMES,
+                    Recommend = w.RECOMMEND,
+                    DateTimeCreated = w.DATETIME_CREATED
+                }).ToList();
             return watermarks;
         }
 
