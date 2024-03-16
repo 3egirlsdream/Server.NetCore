@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Server.NetCore.Models;
 using SqlSugar;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Server.NetCore.Controllers
@@ -252,7 +253,8 @@ namespace Server.NetCore.Controllers
                     Coins = w.COINS,
                     DownloadTimes = w.DOWNLOAD_TIMES,
                     Recommend = w.RECOMMEND,
-                    DateTimeCreated = w.DATETIME_CREATED
+                    DateTimeCreated = w.DATETIME_CREATED,
+                    STATE = w.STATE == "A"
                 }).ToList();
             return watermarks;
         }
