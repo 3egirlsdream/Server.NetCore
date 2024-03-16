@@ -52,7 +52,8 @@ namespace Server.NetCore.Controllers
                     DESC = desc,
                     CDN_PATH = path,
                     USER_ID = userId,
-                    COINS = Convert.ToInt32(coins ?? "0")
+                    COINS = Convert.ToInt32(coins ?? "0"),
+                    STATE = "A"
                 };
                 db.Insertable(exsist).ExecuteCommand();
             }
@@ -76,7 +77,8 @@ namespace Server.NetCore.Controllers
                     DESC = desc,
                     CDN_PATH = path,
                     USER_ID = userId,
-                    COINS = Convert.ToInt32(coins ?? "0")
+                    COINS = Convert.ToInt32(coins ?? "0"),
+                    STATE = "A"
                 };
                 db.Insertable(exsist).ExecuteCommand();
             }
@@ -144,6 +146,7 @@ namespace Server.NetCore.Controllers
                         x.CONTENT,
                         x.COINS,
                         x.RECOMMEND,
+                        x.STATE,
                         s.DISPLAY_NAME
                     })
                     .ToPageList(start, length, ref total);
@@ -162,6 +165,20 @@ namespace Server.NetCore.Controllers
             {
                 GC.Collect();
             }
+        }
+
+
+        [HttpGet]
+        public bool TakeOffOnWatermark(string userId, string watermarkId)
+        {
+            using var db = SugarContext.GetInstance();
+            var water = db.Queryable<WATERMARK_PROPERTY>().Where(x => x.USER_ID == userId && x.ID == watermarkId).ToList().FirstOrDefault();
+            if(water != null )
+            {
+                water.STATE = water.STATE == "A" ? "D" : "A";
+                db.Updateable(water).ExecuteCommand();
+            }
+            return true;
         }
 
 
@@ -270,6 +287,41 @@ namespace Server.NetCore.Controllers
             if (exsist != null)
             {
                 db.Deleteable(exsist).ExecuteCommand();
+            }
+            return true;
+        }
+
+
+        [HttpGet]   
+        public List<string> GetISubscribed(string userId)
+        {
+            using var db = SugarContext.GetInstance();
+            var users = db.Queryable<SYS_USER_SUBSCRIBE>().Where(x => x.USER_ID == userId && x.STATE == "A").Select(x => x.SUBSCRIBED_ID).ToList();
+            return users;
+        }
+
+
+        [HttpGet]
+        public bool SubscribeUser(string  userId, string subscribedId)
+        {
+            using var db = SugarContext.GetInstance();
+            var user = db.Queryable<SYS_USER_SUBSCRIBE>().Where(x => x.USER_ID == userId && x.SUBSCRIBED_ID == subscribedId).ToList().FirstOrDefault();
+            if(user != null)
+            {
+                user.STATE = user.STATE == "A" ? "D" : "A";
+                db.Updateable(user).ExecuteCommand();
+            }
+            else
+            {
+                user = new SYS_USER_SUBSCRIBE
+                {
+                    ID = Guid.NewGuid().ToString("N").ToUpper(),
+                    STATE = "A",
+                    DATETIME_CREATED = DateTime.Now,
+                    USER_ID = userId,
+                    SUBSCRIBED_ID = subscribedId
+                };
+                db.Insertable(user).ExecuteCommand();
             }
             return true;
         }

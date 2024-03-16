@@ -151,7 +151,7 @@ namespace Server.NetCore.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public bool ComputeUserCount(string ID)
+        public int ComputeUserCount(string ID)
         {
             using (var db = SugarContext.GetInstance())
             {
@@ -168,6 +168,7 @@ namespace Server.NetCore.Controllers
                         TOTAL = dic.Count
                     };
                     db.Insertable(result).ExecuteCommand();
+                    return 1;
                 }
                 else
                 {
@@ -176,8 +177,8 @@ namespace Server.NetCore.Controllers
                     result.JSON = JsonConvert.SerializeObject(dic);
                     result.TOTAL = dic.Count;
                     db.Updateable(result).ExecuteCommand();
+                    return result.TOTAL ?? 0;
                 }
-                return true;
             }
         }
     }
