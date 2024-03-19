@@ -2,6 +2,9 @@
 using DotNetCoreServer.Common;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Qiniu.CDN;
+using Qiniu.Http;
+using Qiniu.Util;
 using Server.NetCore.Models;
 using SqlSugar;
 using System;
@@ -30,6 +33,7 @@ namespace Server.NetCore.Controllers
                 exsist.CDN_PATH = path;
                 exsist.COINS = Convert.ToInt32(coins ?? "0");
                 db.Updateable(exsist).ExecuteCommand();
+                return RefreshCache([watermarkId]);
             }
             else
             {
@@ -325,6 +329,26 @@ namespace Server.NetCore.Controllers
             return true;
         }
 
+
+
+
+        bool RefreshCache(List<string> urls)
+        {
+            var AccessKey = "4w3GAeuym71zffbkraBRkUowr7NtMgKRVeIyAmP-";
+            var SecretKey = "8DShhobNrwcZtcrUX12WaE6Nz2k9SHYWYnonzgUI";
+            Mac m = new Mac(AccessKey, SecretKey);
+            CdnManager manager = new CdnManager(m);
+            //URL 列表
+            string Domain = "cdn.thankful.top";
+            var rs = new List<string>();
+            foreach (var u in urls)
+            {
+                rs.Add(string.Format($"https://{Domain}/{u}.zip", Domain));
+            }
+
+            RefreshResult ret = manager.RefreshUrls(rs.ToArray());
+            return ret.Code == (int)HttpCode.OK;
+        }
 
     }
 }

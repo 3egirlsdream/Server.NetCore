@@ -15,6 +15,10 @@ using Newtonsoft.Json;
 using Server.NetCore.Models;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Qiniu.Util;
+using Qiniu.CDN;
+using Base64 = DotNetCoreServer.Models.Base64;
+using Qiniu.Http;
 
 namespace DotNetCoreServer.Controllers
 {
