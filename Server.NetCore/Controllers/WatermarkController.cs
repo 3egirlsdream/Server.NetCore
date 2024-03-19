@@ -350,5 +350,32 @@ namespace Server.NetCore.Controllers
             return ret.Code == (int)HttpCode.OK;
         }
 
+
+        [HttpGet]
+        public bool PageVisitRecord(string pageName, string platform)
+        {
+            using var db = SugarContext.GetInstance();
+            var result = db.Queryable<PAGE_VISIT_RECORD>().Where(x => x.DATE > DateTime.Today && x.DATE < DateTime.Today.AddDays(1).AddSeconds(-1) && x.PAGE_NAME == pageName && x.PLATFORM == platform).ToList().FirstOrDefault();
+            if(result != null)
+            {
+                result.COUNT += 1;
+                db.Updateable(result).ExecuteCommand();
+            }
+            else
+            {
+                result = new PAGE_VISIT_RECORD
+                {
+                    ID = Guid.NewGuid().ToString("N").ToUpper(),
+                    DATE = DateTime.Now,
+                    PLATFORM = platform,
+                    PAGE_NAME = pageName,
+                    COUNT = 1
+                };
+                db.Insertable(result).ExecuteCommand();
+            }
+            return true;
+        }
+
+
     }
 }
