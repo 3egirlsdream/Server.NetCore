@@ -10,6 +10,6 @@ namespace Server.NetCore.Models
 		public string ID { get; set; }
 		public DateTime DATETIME_CREATED { get; set; }
 		public string DEVICE {  get; set; }
-		public string MESSAGE { get; set; }
+		public string MESSAGE { get; set; } 
 	}
 }
