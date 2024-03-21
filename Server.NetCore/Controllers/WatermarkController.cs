@@ -376,6 +376,20 @@ namespace Server.NetCore.Controllers
             return true;
         }
 
+        [HttpGet]
+        public bool UploadLog(string device, string msg)
+        {
+            using var db = SugarContext.GetInstance();
+            var log = new APP_LOG
+            {
+                ID = Guid.NewGuid().ToString("N").ToUpper(),
+                DATETIME_CREATED = DateTime.Now,
+                DEVICE = device,
+                MESSAGE = msg
+            };
+            db.Insertable(log).ExecuteCommand();
+            return true;
+        }
 
     }
 }
