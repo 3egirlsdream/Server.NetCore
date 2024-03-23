@@ -379,7 +379,7 @@ namespace Server.NetCore.Controllers
                 };
                 db.Insertable(result).ExecuteCommand();
             }
-            return true;
+            return true; 
         }
 
         [HttpGet]
