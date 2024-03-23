@@ -16,7 +16,7 @@ namespace Server.NetCore.Controllers
     public class WatermarkController : BaseController
     {
         [HttpPost]
-        public bool Upload([FromForm] string? path, [FromForm] string? desc, [FromForm] string userId, [FromForm] string watermarkId, [FromForm] string? coins)
+        public bool Upload([FromForm] string? path, [FromForm] string? desc, [FromForm] string userId, [FromForm] string watermarkId, [FromForm] string? coins, [FromForm] string? name)
         {
             using var db = SugarContext.GetInstance();
             var exsist = db.Queryable<WATERMARK_PROPERTY>().Where(c => c.ID == watermarkId).ToList().FirstOrDefault();
@@ -31,6 +31,7 @@ namespace Server.NetCore.Controllers
                     exsist.DESC = desc;
                 }
                 exsist.CDN_PATH = path;
+                exsist.NAME = name;
                 exsist.COINS = Convert.ToInt32(coins ?? "0");
                 db.Updateable(exsist).ExecuteCommand();
                 return RefreshCache([watermarkId]);
@@ -42,6 +43,7 @@ namespace Server.NetCore.Controllers
                     ID = watermarkId,
                     DATETIME_CREATED = DateTime.Now,
                     DOWNLOAD_TIMES = 0,
+                    NAME = name,
                     DESC = desc,
                     CDN_PATH = path,
                     USER_ID = userId,
@@ -56,7 +58,7 @@ namespace Server.NetCore.Controllers
         }
 
         [HttpPost]
-        public bool EditWatermark([FromForm] string? path, [FromForm] string? desc, [FromForm] string userId, [FromForm] string watermarkId, [FromForm] string? coins)
+        public bool EditWatermark([FromForm] string? path, [FromForm] string? desc, [FromForm] string userId, [FromForm] string watermarkId, [FromForm] string? coins, [FromForm] string? name)
         {
             using var db = SugarContext.GetInstance();
             var exsist = db.Queryable<WATERMARK_PROPERTY>().Where(c => c.ID == watermarkId && c.USER_ID == userId).ToList().FirstOrDefault();
@@ -67,6 +69,7 @@ namespace Server.NetCore.Controllers
                     ID = watermarkId,
                     DATETIME_CREATED = DateTime.Now,
                     DOWNLOAD_TIMES = 0,
+                    NAME = name,
                     DESC = desc,
                     CDN_PATH = path,
                     USER_ID = userId,
@@ -140,7 +143,8 @@ namespace Server.NetCore.Controllers
                         x.COINS,
                         x.RECOMMEND,
                         x.STATE,
-                        s.DISPLAY_NAME
+                        s.DISPLAY_NAME,
+                        x.NAME
                     })
                     .ToPageList(start, length, ref total);
 
@@ -253,6 +257,7 @@ namespace Server.NetCore.Controllers
                 {
                     WatermarkId = w.ID,
                     UserId= w.USER_ID,
+                    Name = w.NAME,
                     Desc = w.DESC,
                     Coins = w.COINS,
                     DownloadTimes = w.DOWNLOAD_TIMES,
@@ -344,6 +349,7 @@ namespace Server.NetCore.Controllers
             foreach (var u in urls)
             {
                 rs.Add(string.Format($"https://{Domain}/{u}.zip", Domain));
+                rs.Add(string.Format($"https://{Domain}/{u}.jpg", Domain));
             }
 
             RefreshResult ret = manager.RefreshUrls(rs.ToArray());
@@ -389,6 +395,30 @@ namespace Server.NetCore.Controllers
             };
             db.Insertable(log).ExecuteCommand();
             return true;
+        }
+
+        [HttpGet]
+        public object GetUserInfo()
+        {
+            using var db = SugarContext.GetInstance();
+            var result = db.Queryable<SYS_USER>().ToList().GroupBy(x=>x.DATETIME_CREATED.Date).Select(x=>new
+            {
+                Date = x.Key,
+                Count = x.Count(),
+            }).OrderBy(x=>x.Date).ToList();
+            return result;
+        }
+
+        [HttpGet]
+        public object GetVisit()
+        {
+            using var db = SugarContext.GetInstance();
+            var result = db.Queryable<PAGE_VISIT_RECORD>().ToList().GroupBy(x => x.DATE.Date).Select(x => new
+            {
+                Date = x.Key,
+                Count = x.Count(),
+            }).OrderBy(x=>x.Date).ToList();
+            return result;
         }
 
     }

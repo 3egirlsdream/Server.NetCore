@@ -36,6 +36,7 @@ namespace Server.NetCore.Models
         /// Default:
         /// Nullable:True
         /// </summary>           
+        public string NAME { get; set; }
         public string DESC { get; set; }
 
         /// <summary>
