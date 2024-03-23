@@ -368,7 +368,7 @@ namespace Server.NetCore.Controllers
                 db.Updateable(result).ExecuteCommand();
             }
             else
-            {
+            { 
                 result = new PAGE_VISIT_RECORD
                 {
                     ID = Guid.NewGuid().ToString("N").ToUpper(),
