@@ -398,10 +398,12 @@ namespace Server.NetCore.Controllers
         }
 
         [HttpGet]
-        public object GetUserInfo()
+        public object GetUserSignUpInfo(string d)
         {
             using var db = SugarContext.GetInstance();
-            var result = db.Queryable<SYS_USER>().ToList().GroupBy(x=>x.DATETIME_CREATED.Date).Select(x=>new
+            var result = db.Queryable<SYS_USER>()
+                .WhereIF(DateTime.TryParse(d, out DateTime r), x=>x.DATETIME_CREATED > r.Date && x.DATETIME_CREATED < r.Date.AddDays(1).AddSeconds(-1))
+                .ToList().GroupBy(x=>x.DATETIME_CREATED.Date).Select(x=>new
             {
                 Date = x.Key,
                 Count = x.Count(),
@@ -410,10 +412,12 @@ namespace Server.NetCore.Controllers
         }
 
         [HttpGet]
-        public object GetVisit()
+        public object GetVisit(string d)
         {
             using var db = SugarContext.GetInstance();
-            var result = db.Queryable<PAGE_VISIT_RECORD>().ToList().GroupBy(x => x.DATE.Date).Select(x => new
+            var result = db.Queryable<PAGE_VISIT_RECORD>()
+                .WhereIF(DateTime.TryParse(d, out DateTime r), x => x.DATE > r.Date && x.DATE < r.Date.AddDays(1).AddSeconds(-1))
+                .ToList().GroupBy(x => x.DATE.Date).Select(x => new
             {
                 Date = x.Key,
                 Count = x.Count(),
