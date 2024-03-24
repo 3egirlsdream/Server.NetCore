@@ -43,15 +43,15 @@ namespace DotNetCoreServer.Domains
 					}
 					else
 					{
-						if (res.pkid != null)
-						{
-							string pkid = Convert.ToString(res.pkid);
-							var exsist = db.Queryable<SYS_USER>().Any(c => c.PK_ID == pkid);
-							if (exsist)
-							{
-								throw new Exception("当前设备已注册账号，每台设备只能注册一个账号");
-							}
-						}
+						//if (res.pkid != null)
+						//{
+						//	string pkid = Convert.ToString(res.pkid);
+						//	var exsist = db.Queryable<SYS_USER>().Any(c => c.PK_ID == pkid);
+						//	if (exsist)
+						//	{
+						//		throw new Exception("当前设备已注册账号，每台设备只能注册一个账号");
+						//	}
+						//}
 
 						info = new SYS_USER
 						{
