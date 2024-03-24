@@ -30,7 +30,7 @@ namespace DotNetCoreServer.Domains
 					{
 						if (info == null)
 						{
-							throw new Exception("用户不存在或密码错误");
+							throw new Exception("用户不存在或密码错误(使用邮箱登录)");
 						}
 						else
 						{
